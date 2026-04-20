@@ -786,6 +786,26 @@
             100% { transform: rotate(360deg); }
         }
 
+        /* System info inline loader (R1) */
+        .sys-info-loader {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 4px 0;
+            color: #764ba2;
+            font-size: 12px;
+        }
+
+        .sys-info-spinner {
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(118, 75, 162, 0.2);
+            border-top: 2px solid #764ba2;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            flex-shrink: 0;
+        }
+
         /* Settings Modal Specific */
         .settings-content .form-group {
             margin-bottom: 16px;

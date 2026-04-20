@@ -1,8 +1,8 @@
 # IT-Support-Client — Implementation Plan (Refactor)
 
 ## Current Status
-**Last session:** 2026-04-19 (Session #2) — Phase 2 ✅ complete. Extracted all 960 lines of inline JS from index.html into 8 modular ES files under src/renderer/scripts/. index.html shrank from 2,117 → 1,158 lines. Full smoke test passed (system info IPC confirmed working via cache hit log).
-**Next up:** Phase 3 — extract inline CSS from index.html into separate stylesheets under src/renderer/styles/.
+**Last session:** 2026-04-19 (Session #3) — R1 ✅ complete. Deferred eager getSystemInfo() call in main.js so window appears immediately. Added inline loading spinner to system-info-controller.js; spinner shows during initial load and manual refresh, fades out when data arrives. Spinner CSS added to index.html inline style block.
+**Next up:** R2 — in-app ticket confirmation (replace Windows native dialog). Then R3, then Phase 3 (extract inline CSS).
 **Blockers:** None.
 
 ---

@@ -2,11 +2,46 @@ export class SystemInfoController {
     constructor(state, toast) {
         this.state = state;
         this.toast = toast;
+        this._loaderInjected = false;
+    }
+
+    _ensureLoader() {
+        if (this._loaderInjected) return;
+        this._loaderInjected = true;
+
+        const userInfo = document.querySelector('.user-info');
+        if (!userInfo) return;
+
+        const loader = document.createElement('div');
+        loader.id = 'sysInfoLoader';
+        loader.className = 'sys-info-loader';
+        loader.innerHTML = '<div class="sys-info-spinner"></div><span>Collecting system info...</span>';
+        loader.style.display = 'none';
+        userInfo.appendChild(loader);
+    }
+
+    _showLoader() {
+        this._ensureLoader();
+        const loader = document.getElementById('sysInfoLoader');
+        const details = document.querySelector('.user-details');
+        if (loader) loader.style.display = 'flex';
+        if (details) details.style.opacity = '0';
+    }
+
+    _hideLoader() {
+        const loader = document.getElementById('sysInfoLoader');
+        const details = document.querySelector('.user-details');
+        if (loader) loader.style.display = 'none';
+        if (details) {
+            details.style.transition = 'opacity 0.3s ease';
+            details.style.opacity = '1';
+        }
     }
 
     async loadSystemInformation() {
         try {
-            this.updateSystemStatus('Loading...', 'loading');
+            this._showLoader();
+            this.updateSystemStatus('Collecting...', 'loading');
 
             const result = await window.electronAPI.getSystemInfo();
 
@@ -23,6 +58,8 @@ export class SystemInfoController {
             this.state.systemInfo = null;
             this.updateSystemInfoDisplay();
             this.updateSystemStatus('Error', 'error');
+        } finally {
+            this._hideLoader();
         }
     }
 
@@ -96,7 +133,8 @@ export class SystemInfoController {
 
     async handleRefreshSystemInfo() {
         try {
-            this.toast.showMessage('🔄 Refreshing system information...', 'info');
+            this.toast.showMessage('Refreshing system information...', 'info');
+            this._showLoader();
             this.updateSystemStatus('Refreshing...', 'loading');
 
             const result = await window.electronAPI.refreshSystemInfo();
@@ -105,7 +143,7 @@ export class SystemInfoController {
                 this.state.systemInfo = this.transformSystemInfo(result.data);
                 this.updateSystemInfoDisplay();
                 this.updateSystemStatus('Ready', 'healthy');
-                this.toast.showMessage('✅ System information refreshed!', 'success');
+                this.toast.showMessage('System information refreshed!', 'success');
 
                 const systemModal = document.getElementById('systemModal');
                 if (systemModal && systemModal.style.display === 'block') {
@@ -113,11 +151,13 @@ export class SystemInfoController {
                 }
             } else {
                 this.updateSystemStatus('Error', 'error');
-                this.toast.showMessage('❌ ' + (result.error || 'Failed to refresh system information'), 'error');
+                this.toast.showMessage(result.error || 'Failed to refresh system information', 'error');
             }
         } catch (error) {
             this.updateSystemStatus('Error', 'error');
-            this.toast.showMessage('❌ Error refreshing system information', 'error');
+            this.toast.showMessage('Error refreshing system information', 'error');
+        } finally {
+            this._hideLoader();
         }
     }
 }

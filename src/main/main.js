@@ -299,15 +299,16 @@ app.whenReady().then(async () => {
     createWindow();
     createTray();
 
-    // Initialize system collectors and screenshot directory
-    try {
-        console.log('Initializing system collectors...');
-        await systemInfoCollector.getSystemInfo();
-        await ensureScreenshotDirectory();
-        console.log('System collectors initialized successfully');
-    } catch (error) {
-        console.error('System collector initialization error:', error);
-    }
+    // Ensure screenshot directory is ready immediately — fast, no blocking
+    await ensureScreenshotDirectory();
+
+    // Defer system info collection until after the window has fully loaded.
+    // The renderer triggers get-system-info via IPC on its own, but we also
+    // kick off a background pre-warm here so the cache is ready when the
+    // renderer asks. Using did-finish-load ensures the window is visible first.
+    mainWindow.webContents.once('did-finish-load', () => {
+        systemInfoCollector.getSystemInfo().catch(() => {});
+    });
 
     app.on('activate', () => {
         if (BrowserWindow.getAllWindows().length === 0) {
