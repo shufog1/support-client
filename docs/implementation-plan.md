@@ -7,16 +7,16 @@
 
 ## Next Session Prompt
 > Project: IT-Support-Client (SolveIT internal MSP support app)
-> Path: `C:\Users\user\IT-Support-Client`
+> Path: `C:\Users\user\Documents\Work\Internal\IT-Support-Client`
 > Client: Internal (SolveIT)
 >
 > Status: v1.2.0 shipped. Phases 0, 1, 2 ✅. Revisions R1, R2, R3 ✅. Inline JS now in modules. ~50-80 client PCs run this app. Refactor continues — next phase splits the inline CSS out of `index.html`.
 >
 > Read before starting:
-> - `C:\Users\user\IT-Support-Client\CLAUDE.md`
-> - `C:\Users\user\IT-Support-Client\docs\implementation-plan.md` (Current Status + Phase 3 spec)
-> - `C:\Users\user\IT-Support-Client\docs\audit-report.md` (the inline CSS lives at `index.html:12-817`)
-> - `C:\Users\user\IT-Support-Client\CHANGELOG.md` (what's already done)
+> - `C:\Users\user\Documents\Work\Internal\IT-Support-Client\CLAUDE.md`
+> - `C:\Users\user\Documents\Work\Internal\IT-Support-Client\docs\implementation-plan.md` (Current Status + Phase 3 spec)
+> - `C:\Users\user\Documents\Work\Internal\IT-Support-Client\docs\audit-report.md` (the inline CSS lives at `index.html:12-817`)
+> - `C:\Users\user\Documents\Work\Internal\IT-Support-Client\CHANGELOG.md` (what's already done)
 >
 > Start with: launch dev-coder for Phase 3 — extract inline CSS into `src/renderer/styles/` (6 files per the target structure: `base.css`, `header.css`, `form.css`, `modal.css`, `setup-wizard.css`, `messages.css`). Smoke test after, commit `feat: phase 3 — extract inline CSS to stylesheets`. Risk is low (CSS doesn't break logic) but visual diff matters — check every modal looks identical.
 
