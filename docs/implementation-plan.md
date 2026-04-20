@@ -1,7 +1,7 @@
 # IT-Support-Client — Implementation Plan (Refactor)
 
 ## Current Status
-**Last session:** 2026-04-19 (Session #3 followup) — Added splash window to mask the black gap during Zoho remote-script load. Splash appears immediately on launch (purple gradient + logo + spinner), then transitions to the main window after at least 800ms. New files: `src/main/splash.js`, `src/renderer/splash.html`.
+**Last session:** 2026-04-20 (Session #2) — R1 ✅ fully resolved. The real fix was `app.disableHardwareAcceleration()` (GPU process kept crashing in RDP, eating ~1-2s per launch). Splash window + timing instrumentation removed — they were masking/diagnosing a problem that's now fixed at the root. Result: window opens fast and clean, no flash.
 **Next up:** R2 — in-app ticket confirmation (replace Windows native dialog). Then R3, then Phase 3 (extract inline CSS).
 **Blockers:** None.
 

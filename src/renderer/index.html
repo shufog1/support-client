@@ -5,18 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SolveIT Quick Support</title>
 
-    <!-- TIMING INSTRUMENTATION (debug only) -->
-    <script>
-        window.__T0 = Date.now();
-        window.__T = (label) => console.log(`[RENDERER +${(Date.now() - window.__T0).toString().padStart(5, ' ')}ms] ${label}`);
-        window.__T('renderer: <head> first inline script');
-        document.addEventListener('DOMContentLoaded', () => window.__T('renderer: DOMContentLoaded'));
-        window.addEventListener('load', () => window.__T('renderer: window load (all subresources done)'));
-    </script>
-
     <!-- SalesIQ Chat Widget -->
     <script>window.$zoho=window.$zoho || {};$zoho.salesiq=$zoho.salesiq||{ready:function(){}}</script>
-    <script id="zsiqscript" src="https://salesiq.zohopublic.ca/widget?wc=380877c585926da403d5319d4d2ae57e320d9c28839517d349950fdc976da08a" defer onload="window.__T('SalesIQ widget: loaded')"></script>
+    <script id="zsiqscript" src="https://salesiq.zohopublic.ca/widget?wc=380877c585926da403d5319d4d2ae57e320d9c28839517d349950fdc976da08a" defer></script>
     
     <style>
         /* Production Ready Styles */
@@ -1180,10 +1171,9 @@
     </div>
 
     <!-- Include Zoho Scripts -->
-    <script src='https://js.zohostatic.ca/support/app/js/jqueryandencoder.ef05974972bf3bca1b87.js' onload="window.__T('Zoho jquery+encoder: loaded')" onerror="window.__T('Zoho jquery+encoder: FAILED to load')"></script>
+    <script src='https://js.zohostatic.ca/support/app/js/jqueryandencoder.ef05974972bf3bca1b87.js'></script>
     <!-- Zoho form helpers (globals: zsRenderBrowseFileAttachment, zsResetWebForm, etc.) -->
-    <script src="./scripts/modules/zoho-form-helpers.js" onload="window.__T('local zoho-form-helpers.js: loaded')"></script>
+    <script src="./scripts/modules/zoho-form-helpers.js"></script>
     <script type="module" src="./scripts/app.js"></script>
-    <script>window.__T('renderer: end of <body>, all script tags registered');</script>
 </body>
 </html>
