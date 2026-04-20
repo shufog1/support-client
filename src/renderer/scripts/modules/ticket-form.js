@@ -110,8 +110,8 @@ export class TicketForm {
             });
 
             await this.state.dialog.success(
-                'Submission sent',
-                'Your support request has been submitted to Zoho Desk. You\'ll receive a confirmation email shortly. If you don\'t see it within 15 minutes, please reach out directly.'
+                'Submission received',
+                'Your submission has been received. Someone will reach out to you shortly.'
             );
 
             document.getElementById('zsWebToCase_5211000000795236').reset();
