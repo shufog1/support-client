@@ -6,6 +6,43 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this
 
 ---
 
+## [1.3.0] — 2026-04-20
+
+The "clean house" release. Phases 3–6 of the refactor: config-driven whitelabel support, CSS extracted to stylesheets, real security fixes (Electron LTS, XSS hardening, log rotation, signing scaffold), dead code pruned from preload and system-info, PowerShell cache, and full ESLint/Prettier/Husky toolchain.
+
+### Added
+- **Config-driven whitelabel support** — 3 JSON files (`config/app.config.json`, `config/branding.config.json`, `config/zoho.config.json`) hold all hardcoded values; rebranding = edit JSON, zero code changes (Phase 4)
+- **Log rotation** — `src/main/logger.js` wraps `electron-log` with 5 MB max per file, 3 files retained, preventing unbounded disk growth on long-lived installs (SEC10)
+- **ESLint v9 flat config** — `eslint.config.mjs` with `recommended` + `eslint-plugin-n` + `eslint-config-prettier`; `npm run lint` and `npm run lint:fix` scripts (Phase 6)
+- **Prettier v3** — `.prettierrc` standardizes formatting; `npm run format` and `npm run format:check` scripts; ran full format pass across 23 files (Phase 6)
+- **Husky v9 + lint-staged pre-commit hook** — staged `.js` files must pass `eslint --max-warnings=0` before commit; staged `.html`/`.css`/`.json` auto-formatted by Prettier; hook confirmed blocking (Phase 6)
+- **Code-signing scaffold** — `signingHashAlgorithms: ["sha256"]` set in electron-builder config (SEC8); cert purchase tracked in DECISIONS.md D8; `verifyUpdateCodeSignature` stays `false` until cert is in place
+
+### Changed
+- **Inline CSS extracted to 6 stylesheets** — `src/renderer/styles/`: `base.css`, `header.css`, `form.css`, `modal.css`, `setup-wizard.css`, `messages.css`; `index.html` now links them via `<link rel="stylesheet">` (Phase 3)
+- **30+ hardcoded values moved to config** — window dimensions, timeouts, screenshot resolutions, attachment limits, toast duration, branding strings, Zoho tokens — all sourced from config at runtime via `preload.getConfig()` bridge (Phase 4)
+- **Electron bumped 27 → 36.9.5** (EOL → LTS), **electron-builder 24 → 26.8.1** — resolves SEC1; rebuilt native deps; smoke-tested on Win10 + Win11 (Phase 5)
+- **XSS-hardened renderer** — `innerHTML +=` patterns in ticket-form and description-builder replaced with `textContent` / `createElement` throughout user-facing code paths (SEC2)
+- **Attachment limit reconciled at 5** — `zsAllowedAttachmentLimit` and inline copy now match; was inconsistent between UI and form config (H20)
+- **System info collected lazily** — `getSystemInfo()` moved from `app.whenReady()` to `did-finish-load`; window appears immediately, collection runs in background (A5)
+
+### Fixed
+- **H20 — attachment limit mismatch** — UI cap and Zoho form field were out of sync; both now read from `config/app.config.json` `attachments.maxCount`
+- **C7 — PowerShell script cache** — `.asar`-extracted `system-info.ps1` is only re-extracted when the script's `mtime` changes; faster startup after first run on a given Electron version
+
+### Removed
+- **Dead preload surface** — `zohoAPI`, `appUtils`, `checkSystemInfoStatus`, and the `delete window.require/exports/module` lines removed from `preload.js`; unused `new-window` listener removed from `main.js` (C18, A8, A9, C17)
+- **Dead WMIC parser helpers** — `parseWMICValue`, `parseWMICMultipleValues`, `parseRAMSlots`, `parseGPUInfo` deleted from `system-info-collector.js`; WMI path was replaced by PowerShell in v1.0 and these were never called (A6, C5)
+- **~3,165 lines of never-loaded dead code** removed in Phase 1/2 (reinforced here): 15 files across `src/integrations/`, stale script modules, and stray PDF — none were `require`d or `<script src>`'d
+
+### Security
+- **SEC1** — Electron EOL 27 → LTS 36.9.5; eliminates known CVEs in Electron 27 and Node.js embedded runtime
+- **SEC2** — `textContent` / `createElement` replaces `innerHTML` in all user-facing renderer paths; closes XSS surface on ticket description and attachment list rendering
+- **SEC10** — Log rotation via `electron-log`; prevents log files growing unbounded on always-on machines
+- **SEC8** — Code-signing SHA-256 algorithm set in build config; cert purchase pending (see DECISIONS.md D8); `verifyUpdateCodeSignature` flips to `true` once cert is installed
+
+---
+
 ## [1.2.0] — 2026-04-20
 
 The "refactor + UX polish" release. Codebase shrank by 64% (no behavior loss), startup is fast and clean, ticket flow feels native, screenshots auto-attach.
