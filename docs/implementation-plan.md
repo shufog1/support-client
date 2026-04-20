@@ -1,7 +1,7 @@
 # IT-Support-Client — Implementation Plan (Refactor)
 
 ## Current Status
-**Last session:** 2026-04-19 (Session #3) — R1 ✅ complete. Deferred eager getSystemInfo() call in main.js so window appears immediately. Added inline loading spinner to system-info-controller.js; spinner shows during initial load and manual refresh, fades out when data arrives. Spinner CSS added to index.html inline style block.
+**Last session:** 2026-04-19 (Session #3 followup) — Added splash window to mask the black gap during Zoho remote-script load. Splash appears immediately on launch (purple gradient + logo + spinner), then transitions to the main window after at least 800ms. New files: `src/main/splash.js`, `src/renderer/splash.html`.
 **Next up:** R2 — in-app ticket confirmation (replace Windows native dialog). Then R3, then Phase 3 (extract inline CSS).
 **Blockers:** None.
 

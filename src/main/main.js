@@ -4,10 +4,12 @@ const { exec } = require('child_process');
 const fs = require('fs').promises;
 const os = require('os');
 const SystemInfoCollector = require('./system-info-collector');
+const { createSplashWindow } = require('./splash');
 
 const isDev = process.argv.includes('--dev');
 
 let mainWindow;
+let splashWindow;
 let tray;
 let systemInfoCollector;
 
@@ -59,10 +61,19 @@ function createWindow() {
     mainWindow.loadFile(path.join(__dirname, '../renderer/index.html'));
 
     mainWindow.once('ready-to-show', () => {
-        mainWindow.show();
-        if (isDev) {
-            mainWindow.webContents.openDevTools();
-        }
+        const elapsed = Date.now() - splashShownAt;
+        const remaining = Math.max(0, 800 - elapsed);
+
+        setTimeout(() => {
+            if (splashWindow && !splashWindow.isDestroyed()) {
+                splashWindow.close();
+                splashWindow = null;
+            }
+            mainWindow.show();
+            if (isDev) {
+                mainWindow.webContents.openDevTools();
+            }
+        }, remaining);
     });
 
     mainWindow.on('closed', () => {
@@ -295,10 +306,36 @@ if (!gotTheLock) {
     });
 }
 
+// Tracks when the splash window first becomes visible so we can enforce
+// a minimum display time and avoid a flash-and-disappear on fast machines.
+let splashShownAt = Date.now();
+
 // App event handlers
 app.whenReady().then(async () => {
+    // Show splash immediately — before the heavier main window is created.
+    splashWindow = createSplashWindow();
+    splashShownAt = Date.now();
+
+    // Hard timeout: if main window never fires ready-to-show (e.g. load error),
+    // close the splash after 10 seconds so the user isn't left with just a
+    // splash screen and nothing else.
+    const splashHardTimeout = setTimeout(() => {
+        if (splashWindow && !splashWindow.isDestroyed()) {
+            splashWindow.close();
+            splashWindow = null;
+        }
+        if (mainWindow && !mainWindow.isVisible()) {
+            mainWindow.show();
+        }
+    }, 10000);
+
     createWindow();
     createTray();
+
+    // Clear the hard timeout once the main window successfully shows.
+    mainWindow.once('show', () => {
+        clearTimeout(splashHardTimeout);
+    });
 
     // Ensure screenshot directory is ready immediately — fast, no blocking
     await ensureScreenshotDirectory();
