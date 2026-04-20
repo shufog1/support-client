@@ -1,9 +1,9 @@
 # IT-Support-Client — Implementation Plan (Refactor)
 
 ## Current Status
-**Last session:** 2026-04-20 (Session #7) — Phase 5g done: bumped Electron 27.3.11 → 36.9.5, electron-builder 24.13.3 → 26.8.1, electron-updater 6.1.4 → 6.8.3. Clean install, app launches correctly. Phase 5h done: code signing deferred (no cert yet), D8 added to DECISIONS.md.
-**Next up:** Phase 6 — Tooling (ESLint, Prettier, Husky pre-commit hook)
-**Blockers:** None. 5g note: npm audit shows electron <=39.8.4 has CVEs, safe fix is electron 40.9.1+. Acceptable at 36 for now (still huge improvement from 27), revisit before v2.0.0 release.
+**Last session:** 2026-04-20 (Session #8) — Phase 6 done: ESLint v9 flat config, Prettier v3, Husky v9 + lint-staged pre-commit hook. 0 errors / 0 warnings. Format pass ran across 23 files. Hook tested and confirmed blocking.
+**Next up:** Phase 7 — Smoke test, build, pilot deploy (bump to v1.3.0, tag release, publish to GitHub)
+**Blockers:** None. Reminder: npm audit shows electron <=39.8.4 has CVEs, safe fix is electron 40.9.1+. Acceptable at 36 for now, revisit before v2.0.0 release.
 
 ## Next Session Prompt
 > Project: IT-Support-Client (SolveIT internal MSP support app)
@@ -290,7 +290,7 @@ This is the biggest phase. Do it in sub-steps, commit between each.
 | 3 — Extract inline CSS | M | Low | ✅ Completed |
 | 4 — Move hardcoded values to config | M | Medium | ✅ Completed |
 | 5 — Fix real issues | M | Low–Medium | Pending |
-| 6 — Tooling (ESLint, prettier, husky) | S | Low | Pending |
+| 6 — Tooling (ESLint, prettier, husky) | S | Low | ✅ Completed |
 | 7 — Smoke test, build, pilot deploy | S | Low | Pending |
 
 **Recommended order:** strictly 0 → 1 → 2 → 3 → 4 → 5 → 6 → 7. Phase 1 unblocks Phase 2 (no confusion about which files matter). Phase 4 depends on Phase 2 (modules need a target to import config into). Phase 5's Electron upgrade is safer once the structure is clean.
