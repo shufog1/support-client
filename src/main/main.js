@@ -1,3 +1,7 @@
+const T0 = Date.now();
+const T = (label) => console.log(`[TIMING +${(Date.now() - T0).toString().padStart(5, ' ')}ms] ${label}`);
+T('main.js: top of file');
+
 const { app, BrowserWindow, Menu, Tray, ipcMain, dialog, shell, screen, desktopCapturer } = require('electron');
 const path = require('path');
 const { exec } = require('child_process');
@@ -5,6 +9,14 @@ const fs = require('fs').promises;
 const os = require('os');
 const SystemInfoCollector = require('./system-info-collector');
 const { createSplashWindow } = require('./splash');
+T('main.js: requires done');
+
+// Disable hardware acceleration — GPU process keeps crashing on this machine
+// (likely RDP + integrated graphics issue), and the fallback to software rendering
+// adds latency to every BrowserWindow creation. Disabling skips the failed GPU
+// init entirely, so window construction is faster and stable.
+app.disableHardwareAcceleration();
+T('main.js: disableHardwareAcceleration() called');
 
 const isDev = process.argv.includes('--dev');
 
@@ -29,6 +41,7 @@ async function ensureScreenshotDirectory() {
 }
 
 function createWindow() {
+    T('createWindow(): start');
     const primaryDisplay = screen.getPrimaryDisplay();
     const { width: screenWidth, height: screenHeight } = primaryDisplay.workAreaSize;
 
@@ -54,27 +67,46 @@ function createWindow() {
         x: screenWidth - 440,
         y: Math.max(50, (screenHeight - 750) / 2),
         transparent: false,
-        hasShadow: true,
-        vibrancy: 'under-window'
+        hasShadow: true
+        // removed vibrancy: 'under-window' (mac-only, may cause repaint glitch on Windows)
     });
+    T('createWindow(): BrowserWindow constructed');
 
     mainWindow.loadFile(path.join(__dirname, '../renderer/index.html'));
+    T('createWindow(): loadFile() called');
+
+    mainWindow.webContents.on('did-start-loading',  () => T('webContents: did-start-loading'));
+    mainWindow.webContents.on('dom-ready',          () => T('webContents: dom-ready'));
+    mainWindow.webContents.on('did-stop-loading',   () => T('webContents: did-stop-loading'));
+    mainWindow.webContents.on('did-finish-load',    () => T('webContents: did-finish-load'));
+    mainWindow.webContents.on('did-frame-finish-load', (e, isMain) => isMain && T('webContents: did-frame-finish-load (main)'));
+    mainWindow.webContents.on('did-fail-load',      (e, code, desc) => T(`webContents: did-fail-load code=${code} desc=${desc}`));
+
+    // Pipe renderer console output to main process so we can see [RENDERER] timing logs
+    mainWindow.webContents.on('console-message', (event, level, message) => {
+        if (message.startsWith('[RENDERER ')) console.log(message);
+    });
 
     mainWindow.once('ready-to-show', () => {
+        T('mainWindow: ready-to-show');
         const elapsed = Date.now() - splashShownAt;
         const remaining = Math.max(0, 800 - elapsed);
+        T(`mainWindow: enforcing splash min display, waiting ${remaining}ms`);
 
         setTimeout(() => {
+            T('mainWindow: closing splash + showing main');
             if (splashWindow && !splashWindow.isDestroyed()) {
                 splashWindow.close();
                 splashWindow = null;
             }
             mainWindow.show();
+            T('mainWindow: show() called');
             if (isDev) {
                 mainWindow.webContents.openDevTools();
             }
         }, remaining);
     });
+    mainWindow.on('show', () => T('mainWindow: show event fired (window now visible)'));
 
     mainWindow.on('closed', () => {
         mainWindow = null;
@@ -312,9 +344,22 @@ let splashShownAt = Date.now();
 
 // App event handlers
 app.whenReady().then(async () => {
-    // Show splash immediately — before the heavier main window is created.
+    T('app.whenReady() fired');
+
+    // CRITICAL: Show splash FIRST, before doing anything else.
+    // Constructing the main BrowserWindow takes ~1.3s (Chromium init), which
+    // blocks the JS event loop and prevents the splash from rendering.
+    // So we wait for splash to be actually visible, THEN create main window.
     splashWindow = createSplashWindow();
     splashShownAt = Date.now();
+    T('createSplashWindow() returned');
+    splashWindow.once('ready-to-show', () => T('splashWindow: ready-to-show'));
+    splashWindow.on('show', () => T('splashWindow: show event fired (visible)'));
+
+    // Wait for splash to actually paint before creating main window.
+    // Use setImmediate so the splash render can complete this tick.
+    await new Promise(resolve => splashWindow.once('show', resolve));
+    T('splash is visible — proceeding to create main window');
 
     // Hard timeout: if main window never fires ready-to-show (e.g. load error),
     // close the splash after 10 seconds so the user isn't left with just a

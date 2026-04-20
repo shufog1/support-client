@@ -1,3 +1,4 @@
+window.__T && window.__T('app.js: module evaluating (imports starting)');
 import { Toast } from './modules/toast.js';
 import { ProfileStore } from './modules/profile-store.js';
 import { SystemInfoController } from './modules/system-info-controller.js';
@@ -5,8 +6,10 @@ import { Modals } from './modules/modals.js';
 import { TicketForm } from './modules/ticket-form.js';
 import { Tools } from './modules/tools.js';
 import { SetupWizard } from './modules/setup-wizard.js';
+window.__T && window.__T('app.js: imports done');
 
 document.addEventListener('DOMContentLoaded', () => {
+    window.__T && window.__T('app.js: DOMContentLoaded handler running, building modules');
     // Shared state object — all modules read/write this
     const state = {
         systemInfo: null,
