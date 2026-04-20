@@ -1,9 +1,24 @@
 # IT-Support-Client — Implementation Plan (Refactor)
 
 ## Current Status
-**Last session:** 2026-04-20 (Session #3) — R2 ✅ + R3 ✅ both done. R2: in-app branded dialog replaces Windows native dialog on ticket submit (final copy: "Submission received. Someone will reach out to you shortly."). R3: screenshots auto-attach to Zoho form via DataTransfer + change event; `captureScreenshot()` now returns `bytesBase64`; edge case handled (max 5 attachments toast). Phase 3 (extract inline CSS) is next.
-**Next up:** Phase 3 — extract inline CSS into separate stylesheet files.
-**Blockers:** None.
+**Last session:** 2026-04-20 (Session #3) — Massive session. Full audit + refactor Phase 0-2 + revisions R1-R3 + v1.2.0 release. Codebase shrank from 9,497 → 3,399 lines (–64%, all dead code gone). Inline JS extracted into 8 modules. Startup is fast (`disableHardwareAcceleration()` fixed RDP GPU crash). In-app ticket modal replaces Windows native. Screenshots auto-attach to form. Version bumped to 1.2.0, CHANGELOG.md added, fresh installer built.
+**Next up:** Phase 3 — extract inline CSS from `index.html` into separate stylesheets under `src/renderer/styles/`. Then Phase 4 (move hardcoded values to config), Phase 5 (Electron upgrade + code signing), Phase 6 (ESLint+Prettier+Husky), Phase 7 (build + pilot deploy).
+**Blockers:** None. App is stable at 1.2.0.
+
+## Next Session Prompt
+> Project: IT-Support-Client (SolveIT internal MSP support app)
+> Path: `C:\Users\user\IT-Support-Client`
+> Client: Internal (SolveIT)
+>
+> Status: v1.2.0 shipped. Phases 0, 1, 2 ✅. Revisions R1, R2, R3 ✅. Inline JS now in modules. ~50-80 client PCs run this app. Refactor continues — next phase splits the inline CSS out of `index.html`.
+>
+> Read before starting:
+> - `C:\Users\user\IT-Support-Client\CLAUDE.md`
+> - `C:\Users\user\IT-Support-Client\docs\implementation-plan.md` (Current Status + Phase 3 spec)
+> - `C:\Users\user\IT-Support-Client\docs\audit-report.md` (the inline CSS lives at `index.html:12-817`)
+> - `C:\Users\user\IT-Support-Client\CHANGELOG.md` (what's already done)
+>
+> Start with: launch dev-coder for Phase 3 — extract inline CSS into `src/renderer/styles/` (6 files per the target structure: `base.css`, `header.css`, `form.css`, `modal.css`, `setup-wizard.css`, `messages.css`). Smoke test after, commit `feat: phase 3 — extract inline CSS to stylesheets`. Risk is low (CSS doesn't break logic) but visual diff matters — check every modal looks identical.
 
 ---
 
