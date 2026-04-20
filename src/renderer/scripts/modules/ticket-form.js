@@ -261,7 +261,7 @@ Data Collected: ${new Date().toLocaleString()}`;
             const inputEl = document.getElementById('zsattachment_' + nextId);
 
             if (!inputEl) {
-                this.toast.showMessage('Max 5 attachments — remove one to add screenshot', 'warning');
+                this.toast.showMessage(`Max ${maxCount} attachments — remove one to add screenshot`, 'warning');
                 return;
             }
 

@@ -1,8 +1,8 @@
 # IT-Support-Client — Implementation Plan (Refactor)
 
 ## Current Status
-**Last session:** 2026-04-20 (Session #6) — Phase 5 in progress. 5a+5b+5c done: deleted dead preload surface and WMIC helpers (5a). XSS-hardened system info modal (5b). Added electron-log with 5 MB rotation + 3-archive pruning; replaced all console.log/error in main.js and system-info-collector.js with the rotating logger; log goes to %APPDATA%\solveit-support-client\logs\main.log (5c).
-**Next up:** 5d (attachment limit reconciliation check), 5e (PS script path cache), then pause at 5f for Electron bump decision.
+**Last session:** 2026-04-20 (Session #6) — Phase 5 in progress. 5a–5d done. 5d: attachment limit fully consistent — all UI text and code paths read from config.attachments.maxCount (5); last inline hardcoded "5" in ticket-form.js replaced with maxCount variable.
+**Next up:** 5e (PS script path cache), then pause at 5f for Electron bump decision.
 **Blockers:** None. App is stable.
 
 ## Next Session Prompt
