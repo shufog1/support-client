@@ -39,7 +39,7 @@
   "homepage": "https://solveitsolutions.ca",
   "repository": {
     "type": "git",
-    "url": "https://github.com/solveitsolutions/support-client.git"
+    "url": "https://github.com/shufog1/support-client.git"
   },
   "devDependencies": {
     "electron": "^36.0.0",
@@ -171,7 +171,7 @@
     },
     "publish": {
       "provider": "github",
-      "owner": "solveitsolutions",
+      "owner": "shufog1",
       "repo": "support-client",
       "private": false
     }
