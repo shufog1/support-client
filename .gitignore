@@ -88,4 +88,4 @@ tmp/
 backups/
 
 # Google Drive sync temp files
-.tmp.driveupload/
+.tmp.driveupload/Logo.png.original
