@@ -89,3 +89,6 @@ backups/
 
 # Google Drive sync temp files
 .tmp.driveupload/Logo.png.original
+
+.tmp.driveupload/
+assets/icons/Logo.png.original

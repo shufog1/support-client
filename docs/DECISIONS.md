@@ -101,3 +101,56 @@
 **Impact while deferred:** Windows SmartScreen will show an "Unknown publisher" warning when clients install the MSI for the first time, and may block the auto-updater EXE on machines with strict AppLocker/Defender policies. With 50-80 clients currently on the pilot this is acceptable risk.
 
 **When to revisit:** Before scaling past the pilot cohort, and no later than v1.4.0. EV certificates ($200–$500/yr from DigiCert/Sectigo) skip SmartScreen entirely; OV certificates ($100–$300/yr) reduce friction but may still show a warning on first run.
+
+---
+
+## D9 — GitHub Release Host = `shufog1/support-client` (2026-04-20)
+
+**Context:** `package.json` originally pointed `publish.owner` at `solveitsolutions` (GitHub user ID 54551462) — but that account is not owned by Shalom, so we cannot create a repo or push releases there. The `releases.atom` feed consequently 404'd for every production v1.0.0 client on every startup — auto-update silently never worked.
+
+**Decision:** Host releases at `github.com/shufog1/support-client` (public). Updated `package.json` `publish.owner` to `shufog1` and `repository.url` to match.
+
+**Why:** `shufog1` is the authenticated account from the `gh` CLI session (display name "SolveIT"), it's Shalom's. Public repo means auto-updater clients don't need credentials. Zoho form IDs in `config/zoho.config.json` are already public tokens (visible in any submitted HTML form), so no sensitive data is exposed by going public.
+
+**Impact:** Auto-updater feed (`releases.atom`) returns 200 from v1.3.1 onward. All v1.3.1+ installs auto-update from this repo. v1.0.0 clients still pointing at `solveitsolutions/support-client` will continue to 404 silently — they'll need a one-time manual install of v1.3.1 to migrate.
+
+**When to revisit:** If Shalom ever acquires the `solveitsolutions` org on GitHub (or creates an org), the release host can be migrated. The transition path: push a v1.3.x release to the new location FIRST, then update `publish` config in a subsequent version, so the last shufog1 release contains a latest.yml that points clients to the new host.
+
+---
+
+## D10 — `sandbox: false` in BrowserWindow webPreferences (2026-04-20)
+
+**Context:** When Electron was bumped from 27 → 36 in Phase 5g, the BrowserWindow default for `sandbox` changed. In Electron 20+, `sandbox` defaults to `true` when `contextIsolation: true` is set. In a sandboxed preload, `require()` is restricted to a small polyfilled set (`electron`, `events`, `timers`, `url`, `path`) — JSON files and nested project modules cannot be loaded. Our preload does `require('../../config/app.config.json')` at the top of the file, so the preload crashed silently at load time, `contextBridge.exposeInMainWorld('electronAPI', {...})` never executed, and `window.electronAPI` was `undefined` in the renderer. Every IPC call from the renderer threw a TypeError — the "System Information Unavailable" error reported in smoke testing was the first visible symptom.
+
+**Decision:** Set `sandbox: false` in the single `BrowserWindow` `webPreferences` block (`src/main/main.js:61-66`). Retain `nodeIntegration: false` and `contextIsolation: true` as the primary security boundaries.
+
+**Why:** `sandbox: false` only re-enables Node-flavored `require()` for the preload script itself — it does NOT expose Node to the renderer. Since `nodeIntegration: false` + `contextIsolation: true` remain on, the renderer is still isolated from Node and from the preload's raw globals. The only thing we lose is Chromium's extra OS-level sandbox for the preload's process, which is a defense-in-depth layer, not a primary boundary.
+
+**Alternative considered:** Move config loading out of the preload into the main process, exposing values via IPC. This is cleaner architecturally but is a larger refactor (every config access becomes async). Deferred to a future session if/when we re-enable sandbox.
+
+**When to revisit:** If we ever add code-signing (D8) + sandboxing becomes part of a broader hardening pass, refactor config loading to main-process-first and remove `sandbox: false`.
+
+---
+
+## D11 — NSIS Preferred Over MSI for Install-Over-Install Upgrades (2026-04-20)
+
+**Context:** During smoke testing of v1.3.0 on Shalom's dev machine, the MSI installer hung indefinitely on overwriting `resources/app.asar` (~11 MB) during an install-over-install upgrade. `msiexec` sat at the "Re-applying security from existing file" step; the MSI transaction never committed; the install folder was left in a half-copied state with missing DLLs (chrome_100_percent.pak, resources.pak, libEGL.dll, etc.) — resulting in a purple-background window with no UI. The NSIS `.exe /S` installer completed the same upgrade cleanly in seconds.
+
+**Decision:** For v1.3.x rollout, the official installer commands are:
+- **Fresh install (new client machine):** `msiexec /i "SolveIT-Support-Client-1.3.1-x64.msi" /qn /norestart`
+- **Upgrade existing install:** `"SolveIT-Support-Client-1.3.1-x64.exe" /S` (NSIS, silent)
+
+**Why:** MSI is the MSP industry standard for fresh deployment (better Group Policy + RMM integration) but its transaction model struggles with multi-MB asset overwrites when the same ProductCode is reinstalled. NSIS blows away the install directory and writes fresh — no transaction, no locking issues. Both installers are signed with the same SHA-256 config, both are silent via their respective flags, both preserve user data in `%APPDATA%\solveit-support-client\` (localStorage) and `%APPDATA%\IT Support Client\` (system-info cache).
+
+**Impact:** MSP deployment scripts (RMM, Intune, GPO) need to detect "is the app already installed?" and pick the right installer. Suggested logic:
+```
+if (Get-ItemProperty HKCU:\...\Uninstall\* | Where { $_.DisplayName -like '*Support Client*' }) {
+  # Upgrade path
+  & "SolveIT-Support-Client-1.3.1-x64.exe" /S
+} else {
+  # Fresh install
+  msiexec /i "SolveIT-Support-Client-1.3.1-x64.msi" /qn /norestart
+}
+```
+
+**When to revisit:** Root-cause the MSI asar hang in a future session. Likely fix is one of: (a) set a newer ProductCode on every build even at same version, (b) use electron-builder's `perMachine: false + oneClick: true` NSIS mode as the only installer, retiring MSI, or (c) adjust electron-builder's MSI `upgradeCode` handling.

@@ -1,70 +1,40 @@
 # IT-Support-Client — Implementation Plan (Refactor)
 
 ## Current Status
-**Last session:** 2026-04-20 (Session #8) — Phase 6 done: ESLint v9 flat config, Prettier v3, Husky v9 + lint-staged pre-commit hook. 0 errors / 0 warnings. Format pass ran across 23 files. Hook tested and confirmed blocking.
-**Next up:** Phase 7 — Smoke test, build, pilot deploy (bump to v1.3.0, tag release, publish to GitHub)
-**Blockers:** None. Reminder: npm audit shows electron <=39.8.4 has CVEs, safe fix is electron 40.9.1+. Acceptable at 36 for now, revisit before v2.0.0 release.
+**Last session:** 2026-04-20 (Session #9) — **Refactor COMPLETE. v1.3.0 + v1.3.1 shipped and published to GitHub.** Phases 3-7 all done in one session. GitHub repo created at `shufog1/support-client` (public), auto-updater feed verified live. Hotfix v1.3.1 chased v1.3.0 to fix the logo-rocket-fallback bug (empty `src=""` fired onerror before JS could set real src) and the Electron 36 sandbox bug (`sandbox: false` needed so preload `require()` works). Logo resized 4663→256px (219 KB → 8 KB). Shalom's dev machine is running the fresh build from `dist/win-unpacked/` — localStorage preserved across the install.
+**Next up:** **Pilot rollout to 2-3 real clients.** Silent install via RMM using `msiexec /i "SolveIT Support Client-1.3.1-x64.msi" /qn /norestart` (fresh installs) or the NSIS `.exe /S` (upgrades — MSI hangs on `app.asar` overwrite during install-over-install). Monitor for 48h, then mass deploy to ~50-80 clients.
+**Blockers:**
+- NSIS/MSI upgrade path needs investigation — MSI hung on `app.asar` overwrite during v1.3.0 → v1.3.0 upgrade on Shalom's dev machine (workaround: use NSIS `.exe` with `/S` for upgrades). Should fix before production rollout.
+- npm audit still shows Electron CVEs through 39.8.4 (fully clean at 41.2.1). Acceptable at 36 for v1.x, revisit before v2.0.0.
+- Auto-updater `app-update.yml` resources file is missing from the NSIS install (`ENOENT: ...resources/app-update.yml` in log). Harmless warning but means Check-for-Updates from an NSIS-installed client may log errors. Fix in next session.
+- Code signing (SEC8): still deferred to DECISIONS.md D8. Needs Authenticode cert purchase before production SmartScreen-free experience.
 
 ## Next Session Prompt
 > Project: IT-Support-Client (SolveIT internal MSP support app)
 > Path: `C:\Users\user\Documents\Work\Internal\IT-Support-Client`
 > Client: Internal (SolveIT)
 >
-> Status: v1.2.0 shipped, deployed installer at `dist/SolveIT Support Client-1.2.0-x64.msi`. Phases 0/1/2 ✅. Revisions R1/R2/R3 ✅. Codebase is 64% smaller, modular JS, fast startup, in-app modal, auto-attach screenshots. Now finishing the refactor (Phases 3-7) + pilot deploy.
+> Status: **v1.3.1 shipped to `github.com/shufog1/support-client/releases/tag/v1.3.1`.** Refactor Phases 3-7 ✅. Auto-updater feed live (`releases.atom` 200 OK). App verified working on Shalom's dev machine. Ready for pilot rollout — just need the installer-upgrade bug fixed first.
+>
+> This session — **pilot prep + installer fixes**. Two things block mass rollout:
+>
+> 1. **MSI install-over-install hangs** on `app.asar` overwrite (confirmed on Shalom's machine). NSIS `.exe /S` works for upgrades but MSI is what most MSP RMM tools prefer. Either fix the MSI behavior or document "use NSIS for upgrades, MSI for fresh installs" as the official rollout pattern.
+> 2. **`app-update.yml` missing from NSIS install** — `ENOENT` error in logs when auto-updater tries to read it. Fix the electron-builder config so both MSI and NSIS include the file.
+>
+> Both are installer-plumbing issues, not app bugs. Dev-coder can handle. Security-auditor before the rebuild. Bump to v1.3.2 with these fixes. Then run a real pilot: pick 2-3 of Shalom's MSP clients, deploy silently via RMM, monitor 48h.
 >
 > Read first (in order):
 > 1. `CLAUDE.md` — project context
-> 2. `docs/implementation-plan.md` — status + per-phase specs
-> 3. `docs/audit-report.md` — all 64 findings (H1-H20 hardcoded values, S1-S7 Zoho tenant IDs, A1-A9 architecture, C1-C18 code smells, SEC1-SEC10 security)
-> 4. `CHANGELOG.md` — what's already shipped in v1.2.0
-> 5. `docs/DECISIONS.md` — D1-D5 architectural decisions
+> 2. `docs/implementation-plan.md` — this file
+> 3. `CHANGELOG.md` — v1.3.0 + v1.3.1 release notes
+> 4. `docs/DECISIONS.md` — D1-D8 architectural decisions
 >
-> This session — execute Phases 3 → 7 in strict order. **Smoke test + commit between every phase.** Use dev-coder for code, git-manager only if anything goes sideways. Each phase is independent (can pause between any two).
+> **Repo:** https://github.com/shufog1/support-client (public) — release v1.3.1 is Latest.
+> **Installer commands for MSP RMM:**
+> - Fresh install: `msiexec /i "SolveIT-Support-Client-1.3.1-x64.msi" /qn /norestart`
+> - Upgrade existing install: `"SolveIT-Support-Client-1.3.1-x64.exe" /S` (NSIS — avoids MSI asar hang)
 >
-> **Phase 3 — Extract inline CSS** (M, Low risk)
-> - Move the inline `<style>` block at `index.html:12-817` (~800 lines) into 6 files under `src/renderer/styles/`: `base.css`, `header.css`, `form.css`, `modal.css`, `setup-wizard.css`, `messages.css`
-> - Replace inline `<style>` with `<link rel="stylesheet">` tags
-> - Smoke test: open every modal, visual diff vs current. Commit `feat: phase 3 — extract inline CSS to stylesheets`
->
-> **Phase 4 — Move hardcoded values to config** (M, Medium risk — many touchpoints)
-> - Create `config/app.config.json` (window dims, timeouts, paths, screenshot resolutions, attachment limits, toast duration)
-> - Create `config/branding.config.json` (productName, logoPath, colors, supportUrls)
-> - Create `config/zoho.config.json` (salesiqWidgetToken, webToCaseUrl, formId, xnQs/xmIwt tokens — see audit S1-S6)
-> - In main: `require('../../config/...')` at top of window.js / tray.js / auto-updater.js / services/*.js
-> - In preload: expose `getConfig()` bridge with sanitized subset
-> - In renderer: `config-loader.js` calls `electronAPI.getConfig()` once, distributes to modules
-> - Update electron-builder `files:` glob to include `config/**`
-> - Goal: grep for old hardcoded literals returns ZERO hits in `src/`. Whitelabel/fork = edit 3 JSON files, no code changes.
-> - Module-by-module with smoke test after each. Per-sub-step commits.
->
-> **Phase 5 — Fix real issues** (M, Low–Medium risk)
-> - SEC1: Bump `electron` 27 → current LTS (32+), `electron-builder` to latest, `npm install`, rebuild, smoke test
-> - SEC2: Replace `innerHTML +=` patterns at `index.html:1729-1742` and the description-builder at `1843-1894` with `textContent` / `createElement` (XSS surface)
-> - SEC8: Authenticode code-signing for EXE/MSI/NSIS, flip `verifyUpdateCodeSignature: true`. (If signing cert not yet available, document deferral in DECISIONS.md but DO it before the next release)
-> - SEC10: Add log rotation in a new `src/main/logger.js` (max 5 MB, keep last 3 files)
-> - C18, A8, A9, C17: Delete dead preload surface (`zohoAPI`, `appUtils`, `checkSystemInfoStatus`, the `delete window.require/exports/module` lines), delete obsolete `new-window` listener
-> - A6, C5: Delete dead WMIC parser helpers (`parseWMICValue`, `parseWMICMultipleValues`, `parseRAMSlots`, `parseGPUInfo`) from `system-info-collector.js`
-> - C7: Cache the `.asar`-extracted PS script path so re-extraction only happens when script's mtime changes
-> - H20: Reconcile attachment limit — pick 5, update `zsAllowedAttachmentLimit` and inline copy to match
-> - Per-fix commits. Electron major-version bump may surface API removals — that's why this phase comes AFTER restructure.
->
-> **Phase 6 — Tooling** (S, Low risk)
-> - Add ESLint (recommended + electron rules) + `eslint-config-prettier`
-> - Add Prettier with `.prettierrc`
-> - Add `lint` and `format` scripts to package.json
-> - Add Husky `pre-commit` hook running `eslint --max-warnings=0` on staged JS
-> - Run `npm run format` once across `src/` and commit
->
-> **Phase 7 — Smoke test, build, pilot deploy** (S, Low risk)
-> - Full manual smoke test on dev machine
-> - `npm run build-win` for fresh installer (will be v1.3.0 — bump version, update CHANGELOG)
-> - Install on a clean Windows VM or fresh user profile, run setup wizard, submit a real test ticket end-to-end (verify it lands in Zoho Desk)
-> - Tag release, publish to GitHub releases (electron-updater publishes to `solveitsolutions/support-client`)
-> - Roll out to 2-3 client pilot, monitor for 48h, then mass deploy
->
-> **End of session:** `/session-end` (will bump version, update CHANGELOG, commit, generate next prompt)
->
-> Realistic time estimate: 4-6 hours total. If you can only get through Phases 3-5 in one session, that's fine — pause at any phase boundary.
+> Realistic time estimate: 2-3 hours if the installer fixes are straightforward; pilot monitoring is mostly passive after deploy.
 
 ---
 
