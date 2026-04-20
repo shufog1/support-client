@@ -10,15 +10,61 @@
 > Path: `C:\Users\user\Documents\Work\Internal\IT-Support-Client`
 > Client: Internal (SolveIT)
 >
-> Status: v1.2.0 shipped. Phases 0, 1, 2 ✅. Revisions R1, R2, R3 ✅. Inline JS now in modules. ~50-80 client PCs run this app. Refactor continues — next phase splits the inline CSS out of `index.html`.
+> Status: v1.2.0 shipped, deployed installer at `dist/SolveIT Support Client-1.2.0-x64.msi`. Phases 0/1/2 ✅. Revisions R1/R2/R3 ✅. Codebase is 64% smaller, modular JS, fast startup, in-app modal, auto-attach screenshots. Now finishing the refactor (Phases 3-7) + pilot deploy.
 >
-> Read before starting:
-> - `C:\Users\user\Documents\Work\Internal\IT-Support-Client\CLAUDE.md`
-> - `C:\Users\user\Documents\Work\Internal\IT-Support-Client\docs\implementation-plan.md` (Current Status + Phase 3 spec)
-> - `C:\Users\user\Documents\Work\Internal\IT-Support-Client\docs\audit-report.md` (the inline CSS lives at `index.html:12-817`)
-> - `C:\Users\user\Documents\Work\Internal\IT-Support-Client\CHANGELOG.md` (what's already done)
+> Read first (in order):
+> 1. `CLAUDE.md` — project context
+> 2. `docs/implementation-plan.md` — status + per-phase specs
+> 3. `docs/audit-report.md` — all 64 findings (H1-H20 hardcoded values, S1-S7 Zoho tenant IDs, A1-A9 architecture, C1-C18 code smells, SEC1-SEC10 security)
+> 4. `CHANGELOG.md` — what's already shipped in v1.2.0
+> 5. `docs/DECISIONS.md` — D1-D5 architectural decisions
 >
-> Start with: launch dev-coder for Phase 3 — extract inline CSS into `src/renderer/styles/` (6 files per the target structure: `base.css`, `header.css`, `form.css`, `modal.css`, `setup-wizard.css`, `messages.css`). Smoke test after, commit `feat: phase 3 — extract inline CSS to stylesheets`. Risk is low (CSS doesn't break logic) but visual diff matters — check every modal looks identical.
+> This session — execute Phases 3 → 7 in strict order. **Smoke test + commit between every phase.** Use dev-coder for code, git-manager only if anything goes sideways. Each phase is independent (can pause between any two).
+>
+> **Phase 3 — Extract inline CSS** (M, Low risk)
+> - Move the inline `<style>` block at `index.html:12-817` (~800 lines) into 6 files under `src/renderer/styles/`: `base.css`, `header.css`, `form.css`, `modal.css`, `setup-wizard.css`, `messages.css`
+> - Replace inline `<style>` with `<link rel="stylesheet">` tags
+> - Smoke test: open every modal, visual diff vs current. Commit `feat: phase 3 — extract inline CSS to stylesheets`
+>
+> **Phase 4 — Move hardcoded values to config** (M, Medium risk — many touchpoints)
+> - Create `config/app.config.json` (window dims, timeouts, paths, screenshot resolutions, attachment limits, toast duration)
+> - Create `config/branding.config.json` (productName, logoPath, colors, supportUrls)
+> - Create `config/zoho.config.json` (salesiqWidgetToken, webToCaseUrl, formId, xnQs/xmIwt tokens — see audit S1-S6)
+> - In main: `require('../../config/...')` at top of window.js / tray.js / auto-updater.js / services/*.js
+> - In preload: expose `getConfig()` bridge with sanitized subset
+> - In renderer: `config-loader.js` calls `electronAPI.getConfig()` once, distributes to modules
+> - Update electron-builder `files:` glob to include `config/**`
+> - Goal: grep for old hardcoded literals returns ZERO hits in `src/`. Whitelabel/fork = edit 3 JSON files, no code changes.
+> - Module-by-module with smoke test after each. Per-sub-step commits.
+>
+> **Phase 5 — Fix real issues** (M, Low–Medium risk)
+> - SEC1: Bump `electron` 27 → current LTS (32+), `electron-builder` to latest, `npm install`, rebuild, smoke test
+> - SEC2: Replace `innerHTML +=` patterns at `index.html:1729-1742` and the description-builder at `1843-1894` with `textContent` / `createElement` (XSS surface)
+> - SEC8: Authenticode code-signing for EXE/MSI/NSIS, flip `verifyUpdateCodeSignature: true`. (If signing cert not yet available, document deferral in DECISIONS.md but DO it before the next release)
+> - SEC10: Add log rotation in a new `src/main/logger.js` (max 5 MB, keep last 3 files)
+> - C18, A8, A9, C17: Delete dead preload surface (`zohoAPI`, `appUtils`, `checkSystemInfoStatus`, the `delete window.require/exports/module` lines), delete obsolete `new-window` listener
+> - A6, C5: Delete dead WMIC parser helpers (`parseWMICValue`, `parseWMICMultipleValues`, `parseRAMSlots`, `parseGPUInfo`) from `system-info-collector.js`
+> - C7: Cache the `.asar`-extracted PS script path so re-extraction only happens when script's mtime changes
+> - H20: Reconcile attachment limit — pick 5, update `zsAllowedAttachmentLimit` and inline copy to match
+> - Per-fix commits. Electron major-version bump may surface API removals — that's why this phase comes AFTER restructure.
+>
+> **Phase 6 — Tooling** (S, Low risk)
+> - Add ESLint (recommended + electron rules) + `eslint-config-prettier`
+> - Add Prettier with `.prettierrc`
+> - Add `lint` and `format` scripts to package.json
+> - Add Husky `pre-commit` hook running `eslint --max-warnings=0` on staged JS
+> - Run `npm run format` once across `src/` and commit
+>
+> **Phase 7 — Smoke test, build, pilot deploy** (S, Low risk)
+> - Full manual smoke test on dev machine
+> - `npm run build-win` for fresh installer (will be v1.3.0 — bump version, update CHANGELOG)
+> - Install on a clean Windows VM or fresh user profile, run setup wizard, submit a real test ticket end-to-end (verify it lands in Zoho Desk)
+> - Tag release, publish to GitHub releases (electron-updater publishes to `solveitsolutions/support-client`)
+> - Roll out to 2-3 client pilot, monitor for 48h, then mass deploy
+>
+> **End of session:** `/session-end` (will bump version, update CHANGELOG, commit, generate next prompt)
+>
+> Realistic time estimate: 4-6 hours total. If you can only get through Phases 3-5 in one session, that's fine — pause at any phase boundary.
 
 ---
 
