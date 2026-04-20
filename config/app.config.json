@@ -1,0 +1,53 @@
+{
+  "window": {
+    "width": 420,
+    "height": 780,
+    "minWidth": 400,
+    "minHeight": 650,
+    "maxWidth": 500,
+    "maxHeight": 800,
+    "xOffset": 440,
+    "yTarget": 750
+  },
+  "paths": {
+    "screenshotDirName": "SolveIT-Screenshots",
+    "appDataFolderName": "IT Support Client",
+    "psScriptTempDir": "solveit-support"
+  },
+  "screenshot": {
+    "resolutions": [
+      { "width": 1920, "height": 1080, "name": "HD" },
+      { "width": 1280, "height": 720, "name": "HD-Small" },
+      { "width": 800, "height": 600, "name": "Small" }
+    ]
+  },
+  "timeouts": {
+    "execMs": 10000,
+    "psScriptMs": 30000
+  },
+  "attachments": {
+    "maxCount": 5,
+    "maxSizeMb": 20,
+    "blockedExtensions": [
+      "ade", "adp", "apk", "appx", "appxbundle", "bat", "cab", "cer",
+      "chm", "cmd", "com", "cpl", "dll", "dmg", "exe", "hlp", "hta",
+      "ins", "iso", "isp", "jar", "js", "jse", "lnk", "mde", "msc",
+      "msi", "msix", "msixbundle", "msp", "mst", "nsh", "pif", "ps1",
+      "pst", "reg", "scr", "sct", "shb", "sys", "tmp", "url", "vb",
+      "vbe", "vbs", "vxd", "wsc", "wsf", "wsh", "terminal"
+    ]
+  },
+  "toast": {
+    "durationMs": 4000
+  },
+  "demo": {
+    "firstName": "Demo",
+    "lastName": "User",
+    "email": "demo@company.com",
+    "phone": "(555) 123-4567",
+    "extension": "",
+    "department": "General",
+    "jobTitle": "Employee"
+  },
+  "collectionMetadataVersion": "2.0.0"
+}

@@ -1,4 +1,36 @@
 const { contextBridge, ipcRenderer } = require('electron');
+const appConfig = require('../../config/app.config.json');
+const branding = require('../../config/branding.config.json');
+const zohoConfig = require('../../config/zoho.config.json');
+
+// Sanitized config subset for the renderer — only what the UI actually needs.
+// Nothing sensitive lives here; Zoho tokens are public-facing form identifiers
+// (see docs/DECISIONS.md D4 and audit report S1-S6).
+const rendererConfig = Object.freeze({
+    zoho: {
+        salesiqWidgetToken: zohoConfig.salesiqWidgetToken,
+        salesiqWidgetBaseUrl: zohoConfig.salesiqWidgetBaseUrl,
+        webToCaseUrl: zohoConfig.webToCaseUrl,
+        formId: zohoConfig.formId,
+        tokens: {
+            xnQsjsdp: zohoConfig.tokens.xnQsjsdp,
+            xmIwtLD: zohoConfig.tokens.xmIwtLD
+        },
+        cdn: { jqueryEncoderUrl: zohoConfig.cdn.jqueryEncoderUrl }
+    },
+    branding: {
+        productName: branding.productName,
+        tagline: branding.tagline,
+        supportEmail: branding.supportEmail
+    },
+    attachments: {
+        maxCount: appConfig.attachments.maxCount,
+        maxSizeMb: appConfig.attachments.maxSizeMb,
+        blockedExtensions: appConfig.attachments.blockedExtensions
+    },
+    toast: { durationMs: appConfig.toast.durationMs },
+    demo: appConfig.demo
+});
 
 // Security: Only expose specific, safe methods to the renderer process
 contextBridge.exposeInMainWorld('electronAPI', {
@@ -52,7 +84,11 @@ openScreenshotFile: (filePath) => ipcRenderer.invoke('show-screenshot-in-folder'
         } catch {
             return false;
         }
-    }
+    },
+
+    // Config bridge — returns a frozen, sanitized config subset for the renderer.
+    // Values come from config/*.json files loaded in the main process context.
+    getConfig: () => rendererConfig
 });
 
 // Expose system utilities with proper error handling

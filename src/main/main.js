@@ -4,6 +4,9 @@ const { exec } = require('child_process');
 const fs = require('fs').promises;
 const os = require('os');
 const SystemInfoCollector = require('./system-info-collector');
+const appConfig = require('../../config/app.config.json');
+const branding = require('../../config/branding.config.json');
+const zohoConfig = require('../../config/zoho.config.json');
 
 // Disable hardware acceleration — GPU process can crash in some environments
 // (RDP, integrated graphics, virtualized hosts), and the failed-GPU fallback to
@@ -17,8 +20,8 @@ let mainWindow;
 let tray;
 let systemInfoCollector;
 
-// Screenshot functionality (from working test app)
-const outputDir = path.join(os.tmpdir(), 'SolveIT-Screenshots');
+// Screenshot output directory — name sourced from config
+const outputDir = path.join(os.tmpdir(), appConfig.paths.screenshotDirName);
 
 // Initialize collectors
 systemInfoCollector = new SystemInfoCollector();
@@ -37,14 +40,14 @@ function createWindow() {
     const { width: screenWidth, height: screenHeight } = primaryDisplay.workAreaSize;
 
     mainWindow = new BrowserWindow({
-        width: 420,
-        height: 780,
-        minWidth: 400,
-        minHeight: 650,
-        maxWidth: 500,
-        maxHeight: 800,
+        width: appConfig.window.width,
+        height: appConfig.window.height,
+        minWidth: appConfig.window.minWidth,
+        minHeight: appConfig.window.minHeight,
+        maxWidth: appConfig.window.maxWidth,
+        maxHeight: appConfig.window.maxHeight,
         resizable: true,
-        icon: path.join(__dirname, '../../assets/icons/Logo.png'),
+        icon: path.join(__dirname, branding.logoPath),
         webPreferences: {
             nodeIntegration: false,
             contextIsolation: true,
@@ -54,9 +57,9 @@ function createWindow() {
         show: false,
         autoHideMenuBar: true,
         frame: false,
-        backgroundColor: '#667eea',
-        x: screenWidth - 440,
-        y: Math.max(50, (screenHeight - 750) / 2),
+        backgroundColor: branding.ui.windowBackgroundColor,
+        x: screenWidth - appConfig.window.xOffset,
+        y: Math.max(50, (screenHeight - appConfig.window.yTarget) / 2),
         transparent: false,
         hasShadow: true
         // (no vibrancy — mac-only and caused repaint glitches on Windows)
@@ -99,13 +102,13 @@ function createWindow() {
 
 function createTray() {
     try {
-        const trayIconPath = path.join(__dirname, '../../assets/icons/tray-icon.png');
+        const trayIconPath = path.join(__dirname, branding.trayIconPath);
 
         let iconPath = trayIconPath;
         try {
             require('fs').accessSync(trayIconPath);
         } catch {
-            iconPath = path.join(__dirname, '../../assets/icons/Logo.png');
+            iconPath = path.join(__dirname, branding.logoPath);
         }
 
         tray = new Tray(iconPath);
@@ -148,7 +151,7 @@ function createTray() {
             }
         ]);
 
-        tray.setToolTip('SolveIT Support Client - Click to open');
+        tray.setToolTip(branding.trayTooltip);
         tray.setContextMenu(contextMenu);
 
         tray.on('click', () => {
@@ -194,12 +197,8 @@ async function captureScreenshot() {
         const primaryScreen = sources[0];
         console.log('Primary screen selected:', primaryScreen.name);
 
-        // Step 3: Try different resolutions
-        const resolutions = [
-            { width: 1920, height: 1080, name: 'HD' },
-            { width: 1280, height: 720, name: 'HD-Small' },
-            { width: 800, height: 600, name: 'Small' }
-        ];
+        // Step 3: Try different resolutions (sourced from config)
+        const resolutions = appConfig.screenshot.resolutions;
 
         let successfulCapture = null;
 
@@ -473,22 +472,23 @@ ipcMain.handle('restart-computer', async () => {
     try {
         console.log('Initiating system restart...');
 
+        const restartDialog = branding.dialogs.restart;
         const result = await dialog.showMessageBox(mainWindow, {
             type: 'warning',
             buttons: ['Restart Now', 'Cancel'],
             defaultId: 1,
-            title: 'Restart Computer',
-            message: 'Are you sure you want to restart the computer?',
-            detail: 'This will close all applications and restart the system in 30 seconds.'
+            title: restartDialog.title,
+            message: restartDialog.message,
+            detail: restartDialog.detail
         });
 
         if (result.response === 0) {
-            exec('shutdown /r /t 30 /c "Restarting computer via SolveIT Support Tool - Type \'shutdown /a\' to cancel"', (error) => {
+            exec(`shutdown /r /t 30 /c "Restarting computer via ${branding.productName} - Type '${restartDialog.cancelCommand}' to cancel"`, (error) => {
                 if (error) {
                     console.error('Restart error:', error);
                 }
             });
-            return { success: true, message: 'Computer will restart in 30 seconds. Type "shutdown /a" in Command Prompt to cancel.' };
+            return { success: true, message: `Computer will restart in 30 seconds. ${restartDialog.cancelNote}` };
         } else {
             return { success: false, message: 'Restart cancelled by user' };
         }
@@ -681,8 +681,8 @@ if (!isDev) {
             if (mainWindow) {
                 dialog.showMessageBox(mainWindow, {
                     type: 'info',
-                    title: 'Update Available',
-                    message: 'A new version is available and will be downloaded in the background.',
+                    title: branding.dialogs.updateAvailable.title,
+                    message: branding.dialogs.updateAvailable.message,
                     buttons: ['OK']
                 });
             }
@@ -693,8 +693,8 @@ if (!isDev) {
             if (mainWindow) {
                 dialog.showMessageBox(mainWindow, {
                     type: 'info',
-                    title: 'Update Ready',
-                    message: 'Update downloaded. Application will restart to apply the update.',
+                    title: branding.dialogs.updateReady.title,
+                    message: branding.dialogs.updateReady.message,
                     buttons: ['Restart Now', 'Later']
                 }).then((result) => {
                     if (result.response === 0) {
@@ -718,7 +718,7 @@ process.on('unhandledRejection', (reason, promise) => {
     console.error('Unhandled Rejection at:', promise, 'reason:', reason);
 });
 
-console.log('SolveIT Support Client - Production Ready with Working Screenshots');
+console.log(`${branding.productName} - Production Ready with Working Screenshots`);
 console.log('Development mode:', isDev);
 console.log('App path:', app.getAppPath());
 console.log('User data path:', app.getPath('userData'));

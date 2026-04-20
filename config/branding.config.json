@@ -1,0 +1,30 @@
+{
+  "productName": "SolveIT Support Tool",
+  "tagline": "Quick & Easy Support",
+  "trayTooltip": "SolveIT Support Client - Click to open",
+  "logoPath": "../../assets/icons/Logo.png",
+  "trayIconPath": "../../assets/icons/tray-icon.png",
+  "logoFallbackIcon": "🚀",
+  "supportEmail": "support@solveitsolutions.ca",
+  "supportUrl": "https://solveitsolutions.ca",
+  "ui": {
+    "windowBackgroundColor": "#667eea"
+  },
+  "dialogs": {
+    "restart": {
+      "title": "Restart Computer",
+      "message": "Are you sure you want to restart the computer?",
+      "detail": "This will close all applications and restart the system in 30 seconds.",
+      "cancelCommand": "shutdown /a",
+      "cancelNote": "Type \"shutdown /a\" in Command Prompt to cancel."
+    },
+    "updateAvailable": {
+      "title": "Update Available",
+      "message": "A new version is available and will be downloaded in the background."
+    },
+    "updateReady": {
+      "title": "Update Ready",
+      "message": "Update downloaded. Application will restart to apply the update."
+    }
+  }
+}

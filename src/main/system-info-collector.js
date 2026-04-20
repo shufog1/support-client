@@ -3,13 +3,14 @@ const path = require('path');
 const { exec } = require('child_process');
 const { promisify } = require('util');
 const os = require('os');
+const appConfig = require('../../config/app.config.json');
 
 const execAsync = promisify(exec);
 
 class SystemInfoCollector {
     constructor() {
-        // Use AppData for persistent storage
-        this.appDataDir = path.join(os.homedir(), 'AppData', 'Roaming', 'IT Support Client');
+        // Use AppData for persistent storage — folder name sourced from config
+        this.appDataDir = path.join(os.homedir(), 'AppData', 'Roaming', appConfig.paths.appDataFolderName);
         this.systemInfoPath = path.join(this.appDataDir, 'system-info.json');
         this.logPath = path.join(this.appDataDir, 'system-info.log');
     }
@@ -35,7 +36,7 @@ class SystemInfoCollector {
         }
     }
 
-    async runCommand(command, description, timeout = 10000) {
+    async runCommand(command, description, timeout = appConfig.timeouts.execMs) {
         try {
             await this.log(`Running: ${description}`);
             
@@ -69,8 +70,8 @@ class SystemInfoCollector {
             if (scriptPath.includes('.asar')) {
                 await this.log('Running from packaged app - extracting PowerShell script...');
                 
-                // Create temp script in a writable location
-                const tempDir = path.join(os.tmpdir(), 'solveit-support');
+                // Create temp script in a writable location — dir name from config
+                const tempDir = path.join(os.tmpdir(), appConfig.paths.psScriptTempDir);
                 const tempScriptPath = path.join(tempDir, 'system-info.ps1');
                 
                 try {
@@ -91,7 +92,7 @@ class SystemInfoCollector {
             await this.log(`Running PowerShell script: ${scriptPath}`);
             
             const psCommand = `powershell -ExecutionPolicy Bypass -File "${scriptPath}"`;
-            const { stdout, stderr } = await execAsync(psCommand, { timeout: 30000 });
+            const { stdout, stderr } = await execAsync(psCommand, { timeout: appConfig.timeouts.psScriptMs });
             
             if (stderr) {
                 await this.log(`PowerShell warnings: ${stderr}`);
@@ -112,7 +113,7 @@ class SystemInfoCollector {
             systemInfo.collectionInfo = {
                 timestamp: new Date().toISOString(),
                 method: 'PowerShell Script',
-                version: '2.0.0'
+                version: appConfig.collectionMetadataVersion
             };
             
             // Calculate additional memory info using Node.js
@@ -144,7 +145,7 @@ class SystemInfoCollector {
                 collectionInfo: {
                     timestamp: new Date().toISOString(),
                     method: 'Node.js Fallback',
-                    version: '2.0.0'
+                    version: appConfig.collectionMetadataVersion
                 },
                 computer: {
                     name: os.hostname(),

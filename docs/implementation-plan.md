@@ -1,9 +1,9 @@
 # IT-Support-Client — Implementation Plan (Refactor)
 
 ## Current Status
-**Last session:** 2026-04-20 (Session #4) — Phase 3 complete. Extracted ~922 lines of inline CSS from `index.html` into 6 stylesheet files under `src/renderer/styles/` (base, header, form, modal, setup-wizard, messages). `index.html` now uses `<link>` tags only. Smoke test passed — app launched clean, no CSS errors.
-**Next up:** Phase 4 — move hardcoded values to `config/` JSON files. Then Phase 5 (Electron upgrade + code signing), Phase 6 (ESLint+Prettier+Husky), Phase 7 (build + pilot deploy).
-**Blockers:** None. App is stable at 1.2.0.
+**Last session:** 2026-04-20 (Session #5) — Phase 4 in progress. Created 3 config JSON files (`config/app.config.json`, `branding.config.json`, `zoho.config.json`). Phase 4.1 done: main process (`main.js`, `preload.js`, `system-info-collector.js`) now reads all window dims, paths, timeouts, screenshot resolutions, asset paths, tray tooltip, dialog copy from config. Preload exposes `getConfig()` bridge. Working through renderer-side config wiring (4.2–4.6).
+**Next up:** Complete Phase 4 renderer sub-steps (Zoho config in HTML/JS, branding, toast/attachment limits, final grep sweep + package.json files glob). Then Phase 5–7.
+**Blockers:** None.
 
 ## Next Session Prompt
 > Project: IT-Support-Client (SolveIT internal MSP support app)
