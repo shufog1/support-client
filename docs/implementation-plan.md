@@ -1,9 +1,9 @@
 # IT-Support-Client — Implementation Plan (Refactor)
 
 ## Current Status
-**Last session:** 2026-04-20 (Session #6) — Phase 5 in progress. 5a–5e done. 5e: added getScriptPath() method to SystemInfoCollector with in-memory cache (path + mtime); re-extraction only happens when .asar source mtime changes. Removed 20-line inline extraction block from collectSystemInfo().
-**Next up:** Phase 5f — PAUSE. Need to report Electron version analysis before proceeding with 5g (bump) and 5h (code signing).
-**Blockers:** None. App is stable.
+**Last session:** 2026-04-20 (Session #7) — Phase 5g done: bumped Electron 27.3.11 → 36.9.5, electron-builder 24.13.3 → 26.8.1, electron-updater 6.1.4 → 6.8.3. Clean install, app launches correctly. Phase 5h done: code signing deferred (no cert yet), D8 added to DECISIONS.md.
+**Next up:** Phase 6 — Tooling (ESLint, Prettier, Husky pre-commit hook)
+**Blockers:** None. 5g note: npm audit shows electron <=39.8.4 has CVEs, safe fix is electron 40.9.1+. Acceptable at 36 for now (still huge improvement from 27), revisit before v2.0.0 release.
 
 ## Next Session Prompt
 > Project: IT-Support-Client (SolveIT internal MSP support app)
