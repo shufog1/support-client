@@ -38,6 +38,48 @@
 
 ---
 
+## Post-Pilot Backlog
+
+Work that's deferred until after the v1.3.x pilot rollout is stable. Roughly in order of priority.
+
+### A. Code signing (SEC8 / DECISIONS D8)
+Buy an Authenticode cert (OV ~$100-300/yr or EV ~$200-500/yr from DigiCert/Sectigo). Wire `certificateFile` + `CSC_KEY_PASSWORD` into `package.json` win build config. Flip `verifyUpdateCodeSignature: true`. Must happen **before** scaling past the pilot cohort, and no later than v1.4.0. EV cert skips Windows SmartScreen entirely; OV reduces but doesn't eliminate first-run warnings.
+
+### B. AI chatbot tab (new feature — needs planning session)
+End-user-facing chatbot inside the app. Restricted tool whitelist — v1 scope is `winget install` only (let users install vetted software themselves without calling support). Uses Claude API. **Plan separately with project-planner.** Deferred until agent planning is settled since the chatbot will likely call the agent for tool dispatch.
+
+### C. Agent bridge (new feature — needs planning session)
+Thin local-IPC client inside this Electron app that talks to the separate `Internal/claude-computer-agent` Windows Service. Gives Shalom remote shell access to client machines via Claude Code on his end. **Plan separately with project-planner** — big architecture call. See `## Next Session — Agent Architecture Discussion` below.
+
+### D. Consolidate AppData folders
+Currently split between `%APPDATA%\IT Support Client\` (system-info cache, set in `app.config.json`) and `%APPDATA%\solveit-support-client\` (Electron userData default — logs + localStorage). Harmless but messy. Fix: either `app.setName()` to unify, or move `system-info.json` into the Electron-managed path and retire the `appDataFolderName` config.
+
+### E. Electron CVE follow-up
+npm audit still flags Electron CVEs through 39.8.4; fully clean at 41.2.1. We're on 36.9.5. Acceptable for v1.x but revisit before v2.0.0. Each major bump should smoke-test `desktopCapturer` (screenshot) as the highest-risk API.
+
+---
+
+## Next Session — Agent Architecture Discussion
+
+Scheduled with **project-planner** agent. Not a build session — pure planning. Output should be a proper plan doc (`Internal/claude-computer-agent/docs/implementation-plan.md` or similar) + architecture decisions added to both projects' `DECISIONS.md`.
+
+**What needs to be decided (agenda):**
+
+1. **What exactly is the agent?** Confirm scope — is it "Shalom's remote shell into any client machine" only, or does it also serve the in-app chatbot's tool dispatch? Those two use cases have different security models.
+2. **Transport** — local IPC between the Electron app ↔ agent service. Named pipe vs localhost TCP socket. Pros/cons of each on Windows. Auth between them (shared secret from the installer? per-install key?).
+3. **Shalom ↔ agent transport** — how does Shalom's laptop reach the agent on a client PC? Reverse tunnel to the VPS (OpenSSH reverse), WebSocket relay through a server Shalom owns, or something else? This is the "no WebSocket/VPS code in Electron" note — all of that lives in the agent project, not this one.
+4. **What tools does the agent expose?** Shell command execution, file read/write, process list, Windows registry, event log, etc. Whitelist or open-ended? Audit log on the client machine?
+5. **Privilege model** — agent runs as SYSTEM (per the note). How does that interact with UAC prompts, per-user registry keys, user-session screen capture? Does Shalom see the logged-in user's desktop or an isolated SYSTEM session?
+6. **Install / uninstall / update** — agent is bundled with this app's installer at build time. What happens on app uninstall? Does the agent service stick around? How does it auto-update (separate GitHub repo + electron-updater pattern, or piggyback on this app's update)?
+7. **Safety kill switch** — Shalom needs a "disconnect everything right now" option. How does that propagate from UI → agent → running tools?
+8. **User visibility** — does the end user at the client machine see that Shalom is connected? Notification? Tray icon change? Legal/consent requirements?
+9. **Development / testing strategy** — the agent talks to production client PCs. How do we test safely? Local-loopback harness? Staging tenants?
+10. **MVP scope** — what's the minimum first-ship version of the agent? "Shalom can run one arbitrary shell command on a client machine" is probably the smallest useful slice. Build plan from there.
+
+Expected output from the planning session: a written plan with phased rollout, an MVP definition, and a clear handoff of which agent project handles what (remember: the agent is a SEPARATE project — `Internal/claude-computer-agent` — NOT inside IT-Support-Client).
+
+---
+
 # Refactor Plan
 
 **Companion to:** `audit-report.md`
