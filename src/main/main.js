@@ -48,6 +48,7 @@ function createWindow() {
         show: false,
         autoHideMenuBar: true,
         frame: false,
+        backgroundColor: '#667eea',
         x: screenWidth - 440,
         y: Math.max(50, (screenHeight - 750) / 2),
         transparent: false,
