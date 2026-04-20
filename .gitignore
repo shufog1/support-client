@@ -86,3 +86,6 @@ tmp/
 
 # Local backups (7z archives, extracted asar)
 backups/
+
+# Google Drive sync temp files
+.tmp.driveupload/
