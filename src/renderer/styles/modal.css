@@ -1,0 +1,314 @@
+/* Modals */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.5);
+    backdrop-filter: blur(4px);
+}
+
+.modal-content {
+    background-color: white;
+    margin: 3% auto;
+    padding: 0;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 600px;
+    height: 650px;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    animation: modalSlideIn 0.3s ease-out;
+}
+
+@keyframes modalSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-50px) scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.modal-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-header h3 {
+    margin: 0;
+    font-size: 18px;
+}
+
+.close {
+    color: white;
+    font-size: 24px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: rgba(255,255,255,0.1);
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.close:hover {
+    background: rgba(255,255,255,0.2);
+    transform: scale(1.1);
+}
+
+.modal-body {
+    padding: 20px;
+    max-height: 60vh;
+    overflow-y: auto;
+}
+
+.modal-footer {
+    padding: 20px;
+    border-top: 1px solid #e9ecef;
+    text-align: right;
+}
+
+/* System Details */
+.system-section {
+    margin-bottom: 20px;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border-left: 4px solid #007bff;
+}
+
+.system-section h4 {
+    margin-bottom: 12px;
+    color: #333;
+    font-size: 14px;
+}
+
+.system-item {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    font-size: 13px;
+    padding: 4px 0;
+}
+
+.system-item:not(:last-child) {
+    border-bottom: 1px solid #e9ecef;
+}
+
+.system-label {
+    color: #666;
+    font-weight: 500;
+}
+
+.system-value {
+    color: #333;
+    text-align: right;
+    max-width: 60%;
+    word-break: break-word;
+}
+
+.system-unavailable {
+    text-align: center;
+    padding: 20px;
+    color: #666;
+}
+
+.system-unavailable h4 {
+    color: #dc3545;
+    margin-bottom: 10px;
+}
+
+/* Quick Tools Modal */
+.tools-grid-modal {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    padding: 10px;
+}
+
+.tool-btn-modal {
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    padding: 16px 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+    font-family: inherit;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+}
+
+.tool-btn-modal:hover {
+    background: #3498db;
+    color: white;
+    border-color: #3498db;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+}
+
+.tool-btn-modal .tool-icon {
+    font-size: 24px;
+    line-height: 1;
+}
+
+.tool-btn-modal .tool-text {
+    font-size: 12px;
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.tool-btn-modal:hover .tool-text {
+    color: white;
+}
+
+.tool-btn-modal .tool-desc {
+    font-size: 10px;
+    color: #6c757d;
+    line-height: 1.2;
+}
+
+.tool-btn-modal:hover .tool-desc {
+    color: rgba(255, 255, 255, 0.8);
+}
+
+/* Settings Modal Specific */
+.settings-content .form-group {
+    margin-bottom: 16px;
+}
+
+.settings-content .form-group label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 500;
+    font-size: 13px;
+    color: #333;
+}
+
+.settings-content .form-group input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 13px;
+    font-family: inherit;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.settings-content .form-group input:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 0 3px rgba(0,123,255,0.1);
+}
+
+/* ── In-app Dialog (R2) ─────────────────────────────── */
+.app-dialog-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+}
+
+.app-dialog-overlay.active {
+    display: flex;
+}
+
+.app-dialog-card {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.22);
+    width: 360px;
+    max-width: calc(100vw - 32px);
+    padding: 28px 24px 22px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    animation: dialogIn 0.18s ease;
+}
+
+@keyframes dialogIn {
+    from { opacity: 0; transform: translateY(-10px) scale(0.97); }
+    to   { opacity: 1; transform: translateY(0)     scale(1); }
+}
+
+.app-dialog-icon-wrap {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    font-weight: 700;
+    margin-bottom: 4px;
+}
+
+.app-dialog-overlay.success .app-dialog-icon-wrap {
+    background: #e8f5e9;
+    color: #2e7d32;
+}
+
+.app-dialog-overlay.error .app-dialog-icon-wrap {
+    background: #fdecea;
+    color: #c62828;
+}
+
+.app-dialog-overlay:not(.success):not(.error) .app-dialog-icon-wrap {
+    background: linear-gradient(135deg, rgba(102,126,234,0.15) 0%, rgba(118,75,162,0.15) 100%);
+    color: #667eea;
+}
+
+.app-dialog-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #1a1a1a;
+    text-align: center;
+}
+
+.app-dialog-body {
+    font-size: 13px;
+    color: #555;
+    text-align: center;
+    line-height: 1.55;
+}
+
+.app-dialog-btn {
+    margin-top: 8px;
+    padding: 9px 32px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: opacity 0.15s;
+}
+
+.app-dialog-btn:hover {
+    opacity: 0.88;
+}
+
+.app-dialog-btn:focus {
+    outline: 2px solid #667eea;
+    outline-offset: 2px;
+}

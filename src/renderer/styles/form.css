@@ -1,0 +1,181 @@
+/* Main Form */
+.main-form {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
+}
+
+/* Zoho Form Layout - Stack Labels Above Fields */
+#zohoSupportWebToCase table {
+    width: 100% !important;
+    border-spacing: 0 !important;
+    background: white !important;
+}
+
+#zohoSupportWebToCase td {
+    padding: 0 !important;
+    border: none !important;
+    display: block !important;
+    width: 100% !important;
+}
+
+#zohoSupportWebToCase tr {
+    display: block !important;
+    margin-bottom: 16px !important;
+}
+
+#zohoSupportWebToCase .form-label {
+    display: block !important;
+    margin-bottom: 6px !important;
+    font-weight: 500 !important;
+    font-size: 13px !important;
+    color: #333 !important;
+}
+
+#zohoSupportWebToCase input[type='text'],
+#zohoSupportWebToCase textarea,
+#zohoSupportWebToCase select {
+    width: 100% !important;
+    padding: 10px 12px !important;
+    border: 1px solid #ddd !important;
+    border-radius: 6px !important;
+    font-size: 13px !important;
+    font-family: inherit !important;
+    transition: border-color 0.2s, box-shadow 0.2s !important;
+    box-sizing: border-box !important;
+}
+
+#zohoSupportWebToCase input[type='text']:focus,
+#zohoSupportWebToCase textarea:focus,
+#zohoSupportWebToCase select:focus {
+    outline: none !important;
+    border-color: #007bff !important;
+    box-shadow: 0 0 0 3px rgba(0,123,255,0.1) !important;
+}
+
+#zohoSupportWebToCase textarea {
+    min-height: 80px !important;
+    resize: vertical !important;
+    font-family: inherit !important;
+}
+
+#zohoSupportWebToCase .manfieldbdr {
+    border-left: 3px solid #007bff !important;
+}
+
+/* Attachment Section with Screenshot Button on Top */
+.attachment-section {
+    margin-bottom: 12px !important;
+}
+
+.attachment-header {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    margin-bottom: 8px !important;
+}
+
+.attachment-header .form-label {
+    margin: 0 !important;
+    font-weight: 500 !important;
+    font-size: 13px !important;
+    color: #333 !important;
+}
+
+.screenshot-btn {
+    background: #17a2b8 !important;
+    color: white !important;
+    border: none !important;
+    padding: 6px 10px !important;
+    border-radius: 4px !important;
+    font-size: 11px !important;
+    cursor: pointer !important;
+    transition: all 0.2s !important;
+    font-family: inherit !important;
+    white-space: nowrap !important;
+}
+
+.screenshot-btn:hover {
+    background: #138496 !important;
+    transform: translateY(-1px) !important;
+}
+
+/* Compact Attachment Area */
+.attachment-area {
+    position: relative !important;
+    border: 2px dashed #ddd !important;
+    border-radius: 6px !important;
+    padding: 15px !important;
+    text-align: center !important;
+    background: #fafafa !important;
+    transition: all 0.3s ease !important;
+    cursor: pointer !important;
+}
+
+.attachment-area.drag-over {
+    border-color: #007bff !important;
+    background: #f0f8ff !important;
+    transform: scale(1.01) !important;
+}
+
+.attachment-area .drag-text {
+    color: #666 !important;
+    font-size: 12px !important;
+    margin: 0 !important;
+}
+
+.attachment-area .drag-icon {
+    font-size: 20px !important;
+    color: #ccc !important;
+    margin-right: 8px !important;
+}
+
+.attachment-area.drag-over .drag-icon {
+    color: #007bff !important;
+}
+
+/* Submit Section */
+.submit-section {
+    display: flex !important;
+    gap: 12px !important;
+    margin-top: 20px !important;
+    justify-content: center !important;
+}
+
+#zohoSupportWebToCase input[type='submit'],
+#zohoSupportWebToCase input[type='button'] {
+    padding: 12px 24px !important;
+    border: none !important;
+    border-radius: 6px !important;
+    cursor: pointer !important;
+    font-size: 13px !important;
+    font-weight: 500 !important;
+    transition: all 0.2s !important;
+    font-family: inherit !important;
+    min-width: 100px !important;
+}
+
+#zohoSupportWebToCase input[type='submit'] {
+    background: #007bff !important;
+    color: white !important;
+}
+
+#zohoSupportWebToCase input[type='submit']:hover {
+    background: #0056b3 !important;
+    transform: translateY(-1px) !important;
+}
+
+#zohoSupportWebToCase input[type='button'] {
+    background: #6c757d !important;
+    color: white !important;
+}
+
+#zohoSupportWebToCase input[type='button']:hover {
+    background: #545b62 !important;
+    transform: translateY(-1px) !important;
+}
+
+/* Hide Zoho branding */
+.wb_FtCon {
+    display: none !important;
+}

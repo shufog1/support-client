@@ -1,8 +1,8 @@
 # IT-Support-Client — Implementation Plan (Refactor)
 
 ## Current Status
-**Last session:** 2026-04-20 (Session #3) — Massive session. Full audit + refactor Phase 0-2 + revisions R1-R3 + v1.2.0 release. Codebase shrank from 9,497 → 3,399 lines (–64%, all dead code gone). Inline JS extracted into 8 modules. Startup is fast (`disableHardwareAcceleration()` fixed RDP GPU crash). In-app ticket modal replaces Windows native. Screenshots auto-attach to form. Version bumped to 1.2.0, CHANGELOG.md added, fresh installer built.
-**Next up:** Phase 3 — extract inline CSS from `index.html` into separate stylesheets under `src/renderer/styles/`. Then Phase 4 (move hardcoded values to config), Phase 5 (Electron upgrade + code signing), Phase 6 (ESLint+Prettier+Husky), Phase 7 (build + pilot deploy).
+**Last session:** 2026-04-20 (Session #4) — Phase 3 complete. Extracted ~922 lines of inline CSS from `index.html` into 6 stylesheet files under `src/renderer/styles/` (base, header, form, modal, setup-wizard, messages). `index.html` now uses `<link>` tags only. Smoke test passed — app launched clean, no CSS errors.
+**Next up:** Phase 4 — move hardcoded values to `config/` JSON files. Then Phase 5 (Electron upgrade + code signing), Phase 6 (ESLint+Prettier+Husky), Phase 7 (build + pilot deploy).
 **Blockers:** None. App is stable at 1.2.0.
 
 ## Next Session Prompt
@@ -287,7 +287,7 @@ This is the biggest phase. Do it in sub-steps, commit between each.
 | 0 — Safety net | S | Low | ✅ Completed |
 | 1 — Delete dead code | S | Low | ✅ Completed |
 | 2 — Extract inline JS | L | Medium | ✅ Completed |
-| 3 — Extract inline CSS | M | Low | Pending |
+| 3 — Extract inline CSS | M | Low | ✅ Completed |
 | 4 — Move hardcoded values to config | M | Medium | Pending |
 | 5 — Fix real issues | M | Low–Medium | Pending |
 | 6 — Tooling (ESLint, prettier, husky) | S | Low | Pending |
