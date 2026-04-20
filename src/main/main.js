@@ -7,7 +7,6 @@ const log = require('./logger');
 const SystemInfoCollector = require('./system-info-collector');
 const appConfig = require('../../config/app.config.json');
 const branding = require('../../config/branding.config.json');
-const zohoConfig = require('../../config/zoho.config.json');
 
 // Disable hardware acceleration — GPU process can crash in some environments
 // (RDP, integrated graphics, virtualized hosts), and the failed-GPU fallback to
@@ -293,7 +292,7 @@ if (!gotTheLock) {
     app.quit();
 } else {
     // This is the first instance, set up the second-instance handler
-    app.on('second-instance', (event, commandLine, workingDirectory) => {
+    app.on('second-instance', (_event, _commandLine, _workingDirectory) => {
         // Someone tried to run a second instance, focus our existing window instead
         if (mainWindow) {
             if (mainWindow.isMinimized()) mainWindow.restore();

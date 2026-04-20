@@ -211,12 +211,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Global error handlers
-    window.addEventListener('error', (e) => {
+    window.addEventListener('error', (_e) => {
         // intentionally left empty — errors surface through normal UI feedback
     });
 
-    window.addEventListener('unhandledrejection', (e) => {
-        // intentionally left empty — rejections surface through normal UI feedback
+    window.addEventListener('unhandledrejection', (_e) => {
+        // intentionally left empty — errors surface through normal UI feedback
     });
 
     // Expose app for any legacy references

@@ -14,7 +14,11 @@
     "pack": "electron-builder --dir",
     "postinstall": "electron-builder install-app-deps",
     "clean": "rimraf dist",
-    "rebuild": "electron-rebuild"
+    "rebuild": "electron-rebuild",
+    "lint": "eslint src/",
+    "lint:fix": "eslint src/ --fix",
+    "format": "prettier --write \"src/**/*.{js,html,css,json}\" \"config/**/*.json\"",
+    "format:check": "prettier --check \"src/**/*.{js,html,css,json}\" \"config/**/*.json\""
   },
   "keywords": [
     "electron",
@@ -40,6 +44,10 @@
     "electron": "^36.0.0",
     "electron-builder": "^26.0.0",
     "electron-rebuild": "^3.2.9",
+    "eslint": "^9.39.4",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-n": "^17.24.0",
+    "prettier": "^3.8.3",
     "rimraf": "^5.0.5"
   },
   "dependencies": {
@@ -73,7 +81,9 @@
       "icon": "build/icon.ico",
       "requestedExecutionLevel": "asInvoker",
       "publisherName": "SolveIT Solutions",
-      "signingHashAlgorithms": ["sha256"],
+      "signingHashAlgorithms": [
+        "sha256"
+      ],
       "verifyUpdateCodeSignature": false
     },
     "mac": {
