@@ -83,10 +83,11 @@
       ],
       "icon": "build/icon.ico",
       "requestedExecutionLevel": "asInvoker",
-      "publisherName": "SolveIT Solutions",
-      "signingHashAlgorithms": [
-        "sha256"
-      ],
+      "legalTrademarks": "SolveIT Solutions",
+      "signtoolOptions": {
+        "publisherName": "SolveIT Solutions",
+        "signingHashAlgorithms": ["sha256"]
+      },
       "verifyUpdateCodeSignature": false
     },
     "mac": {
@@ -124,9 +125,11 @@
       "icon": "build/icon.png",
       "category": "Office",
       "desktop": {
-        "Name": "SolveIT Support Client",
-        "Comment": "Quick & Easy Support Tool",
-        "Categories": "Office;Network;"
+        "entry": {
+          "Name": "SolveIT Support Client",
+          "Comment": "Quick & Easy Support Tool",
+          "Categories": "Office;Network;"
+        }
       }
     },
     "nsis": {
