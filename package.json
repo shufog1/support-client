@@ -1,0 +1,164 @@
+{
+  "name": "solveit-support-client",
+  "version": "1.0.0",
+  "description": "SolveIT Solutions Support Client - Quick & Easy Support Tool",
+  "main": "src/main/main.js",
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron . --dev",
+    "build": "electron-builder",
+    "build-win": "electron-builder --win",
+    "build-mac": "electron-builder --mac",
+    "build-linux": "electron-builder --linux",
+    "dist": "npm run build",
+    "pack": "electron-builder --dir",
+    "postinstall": "electron-builder install-app-deps",
+    "clean": "rimraf dist",
+    "rebuild": "electron-rebuild"
+  },
+  "keywords": [
+    "electron",
+    "support",
+    "helpdesk",
+    "solveit",
+    "system-info",
+    "screenshots",
+    "ticketing"
+  ],
+  "author": {
+    "name": "SolveIT Solutions",
+    "email": "support@solveitsolutions.ca",
+    "url": "https://solveitsolutions.ca"
+  },
+  "license": "MIT",
+  "homepage": "https://solveitsolutions.ca",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/solveitsolutions/support-client.git"
+  },
+  "devDependencies": {
+    "electron": "^27.0.0",
+    "electron-builder": "^24.13.3",
+    "electron-rebuild": "^3.2.9",
+    "rimraf": "^5.0.5"
+  },
+  "dependencies": {
+    "electron-updater": "^6.1.4",
+    "node-fetch": "^3.3.2"
+  },
+  "build": {
+    "appId": "ca.solveitsolutions.support-client",
+    "productName": "SolveIT Support Client",
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "files": [
+      "src/**/*",
+      "assets/**/*",
+      "package.json",
+      "!src/**/*.md",
+      "!**/node_modules/.cache"
+    ],
+    "compression": "normal",
+    "artifactName": "${productName}-${version}-${arch}.${ext}",
+    "win": {
+      "target": [
+        "msi",
+        "nsis",
+        "portable"
+      ],
+      "icon": "build/icon.ico",
+      "requestedExecutionLevel": "asInvoker",
+      "publisherName": "SolveIT Solutions",
+      "verifyUpdateCodeSignature": false
+    },
+    "mac": {
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        }
+      ],
+      "icon": "build/icon.icns",
+      "category": "public.app-category.productivity",
+      "hardenedRuntime": true,
+      "gatekeeperAssess": false,
+      "entitlements": "build/entitlements.mac.plist",
+      "entitlementsInherit": "build/entitlements.mac.plist"
+    },
+    "linux": {
+      "target": [
+        {
+          "target": "AppImage",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "deb",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "build/icon.png",
+      "category": "Office",
+      "desktop": {
+        "Name": "SolveIT Support Client",
+        "Comment": "Quick & Easy Support Tool",
+        "Categories": "Office;Network;"
+      }
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "SolveIT Support Client",
+      "installerIcon": "build/icon.ico",
+      "uninstallerIcon": "build/icon.ico",
+      "installerHeaderIcon": "build/icon.ico",
+      "deleteAppDataOnUninstall": false,
+      "runAfterFinish": true,
+      "menuCategory": "SolveIT Solutions"
+    },
+    "portable": {
+      "artifactName": "${productName}-${version}-portable.${ext}"
+    },
+    "dmg": {
+      "title": "${productName} ${version}",
+      "iconSize": 100,
+      "contents": [
+        {
+          "x": 380,
+          "y": 280,
+          "type": "link",
+          "path": "/Applications"
+        },
+        {
+          "x": 110,
+          "y": 280,
+          "type": "file"
+        }
+      ],
+      "window": {
+        "width": 500,
+        "height": 400
+      }
+    },
+    "publish": {
+      "provider": "github",
+      "owner": "solveitsolutions",
+      "repo": "support-client",
+      "private": false
+    }
+  },
+  "engines": {
+    "node": ">=16.0.0",
+    "npm": ">=8.0.0"
+  }
+}
