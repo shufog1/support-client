@@ -6,6 +6,20 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this
 
 ---
 
+## [1.3.1] — 2026-04-20
+
+Hotfix release addressing issues caught during v1.3.0 smoke testing.
+
+### Fixed
+- **Brand logo now displays correctly in header** — the `<img>` had `src=""` which triggered `onerror` on page load (empty src = invalid resource in Chromium), hiding the image and falling back to the 🚀 emoji before JavaScript could assign the real source. Removed the empty attribute so the image waits for JS.
+- **Renderer can reach IPC bridge in Electron 36** — added `sandbox: false` to BrowserWindow `webPreferences`. Electron 20+ defaults sandbox to `true` when `contextIsolation` is on, which prevents `require()` in the preload script. The preload uses `require('../../config/*.json')` to load configs at load time, and the sandbox silently crashed it — leaving `window.electronAPI` undefined, so all IPC calls (system info, screenshot, etc.) failed with "Could not collect" errors. `contextIsolation: true` and `nodeIntegration: false` remain in place as the primary security boundary.
+- **Publish URL now points at the real release host** — `package.json` `publish.owner` corrected from `solveitsolutions` (a 3rd-party account) to `shufog1` so auto-updater's `releases.atom` feed returns 200 instead of 404.
+
+### Changed
+- **Brand logo resized from 4663×4663 (219 KB) to 256×256 (8 KB)** — header displays at ~40 px; full-resolution decode was costing ~75 MB of renderer memory per window.
+
+---
+
 ## [1.3.0] — 2026-04-20
 
 The "clean house" release. Phases 3–6 of the refactor: config-driven whitelabel support, CSS extracted to stylesheets, real security fixes (Electron LTS, XSS hardening, log rotation, signing scaffold), dead code pruned from preload and system-info, PowerShell cache, and full ESLint/Prettier/Husky toolchain.
