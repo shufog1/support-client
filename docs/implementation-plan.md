@@ -1,8 +1,8 @@
 # IT-Support-Client — Implementation Plan (Refactor)
 
 ## Current Status
-**Last session:** 2026-04-19 (Session #1) — full audit complete, refactor plan written, Phase 0 ✅, Phase 1 ✅. Codebase shrank from 9,497 → 3,399 lines (–64%, 6,098 lines of dead code deleted across 15 files + 5 folders).
-**Next up:** Smoke test the app after Phase 1, then Phase 2 (extract inline JS from index.html into modules).
+**Last session:** 2026-04-19 (Session #2) — Phase 2 ✅ complete. Extracted all 960 lines of inline JS from index.html into 8 modular ES files under src/renderer/scripts/. index.html shrank from 2,117 → 1,158 lines. Full smoke test passed (system info IPC confirmed working via cache hit log).
+**Next up:** Phase 3 — extract inline CSS from index.html into separate stylesheets under src/renderer/styles/.
 **Blockers:** None.
 
 ---
@@ -149,6 +149,7 @@ This is the biggest phase. Do it in sub-steps, commit between each.
 | Rollback | `git revert <phase-2 commits>` — each sub-step is its own commit |
 | Effort | L |
 | Risk | Medium — moving 960 lines of stateful UI code; module load order matters |
+| Status | ✅ **Completed** — index.html shrank from 2,117 → 1,158 lines. Modules: app.js (bootstrap), toast.js, profile-store.js, system-info-controller.js, modals.js, ticket-form.js, tools.js, setup-wizard.js, zoho-form-helpers.js. Smoke test confirmed system info IPC working. |
 
 ### Phase 3 — Extract Inline CSS into Stylesheets (M, Low risk)
 
@@ -224,7 +225,7 @@ This is the biggest phase. Do it in sub-steps, commit between each.
 |-------|--------|------|--------|
 | 0 — Safety net | S | Low | ✅ Completed |
 | 1 — Delete dead code | S | Low | ✅ Completed |
-| 2 — Extract inline JS | L | Medium | Pending |
+| 2 — Extract inline JS | L | Medium | ✅ Completed |
 | 3 — Extract inline CSS | M | Low | Pending |
 | 4 — Move hardcoded values to config | M | Medium | Pending |
 | 5 — Fix real issues | M | Low–Medium | Pending |

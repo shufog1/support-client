@@ -1,0 +1,271 @@
+export class TicketForm {
+    constructor(state, toast) {
+        this.state = state;
+        this.toast = toast;
+    }
+
+    autoFillZohoForm() {
+        try {
+            const autoFirstName = document.getElementById('autoFirstName');
+            const autoContactName = document.getElementById('autoContactName');
+            const autoEmail = document.getElementById('autoEmail');
+            const autoPhone = document.getElementById('autoPhone');
+
+            if (autoFirstName) autoFirstName.value = this.state.userSettings.firstName || '';
+            if (autoContactName) autoContactName.value = this.state.userSettings.lastName || '';
+            if (autoEmail) autoEmail.value = this.state.userSettings.email || '';
+            if (autoPhone) autoPhone.value = this.state.userSettings.phone || '';
+        } catch (error) {
+            // ignore
+        }
+    }
+
+    setupDragAndDrop() {
+        const dragArea = document.getElementById('dragDropArea');
+        if (!dragArea) return;
+
+        dragArea.addEventListener('click', (e) => {
+            if (e.target.id !== 'takeScreenshotBtn' && window.zsAttachedAttachmentsCount < 5) {
+                const nextAttachment = document.getElementById('zsattachment_' + window.zsAttachmentFileBrowserIdsList[0]);
+                if (nextAttachment) {
+                    nextAttachment.click();
+                }
+            }
+        });
+
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dragArea.addEventListener(eventName, this.preventDefaults, false);
+        });
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dragArea.addEventListener(eventName, () => dragArea.classList.add('drag-over'), false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dragArea.addEventListener(eventName, () => dragArea.classList.remove('drag-over'), false);
+        });
+
+        dragArea.addEventListener('drop', (e) => this.handleFileDrop(e), false);
+    }
+
+    preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+
+    handleFileDrop(e) {
+        const files = e.dataTransfer.files;
+        this.handleFileSelection([...files]);
+    }
+
+    handleFileSelection(files) {
+        for (let i = 0; i < files.length && window.zsAttachedAttachmentsCount < 5; i++) {
+            const file = files[i];
+            const nextAttachmentId = window.zsAttachmentFileBrowserIdsList[0];
+            const nextAttachment = document.getElementById('zsattachment_' + nextAttachmentId);
+
+            if (nextAttachment) {
+                const dataTransfer = new DataTransfer();
+                dataTransfer.items.add(file);
+                nextAttachment.files = dataTransfer.files;
+
+                window.zsRenderBrowseFileAttachment(file.name, nextAttachment);
+            }
+        }
+    }
+
+    async handleTicketSubmission(e) {
+        e.preventDefault();
+
+        const submitBtn = document.getElementById('zsSubmitButton_5211000000795236');
+        const originalText = submitBtn.textContent;
+
+        try {
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Submitting...';
+
+            const subject = document.getElementById('ticketSubject').value.trim();
+            const description = document.getElementById('ticketDescription').value.trim();
+
+            if (!subject) {
+                throw new Error('Please enter a subject for your ticket');
+            }
+
+            if (!description) {
+                throw new Error('Please describe your issue');
+            }
+
+            const systemInfoText = this.generateSystemInfoText();
+            const descriptionField = document.getElementById('ticketDescription');
+            if (!descriptionField.value.includes('=== SYSTEM INFORMATION ===')) {
+                descriptionField.value += systemInfoText;
+            }
+
+            const formData = new FormData(document.getElementById('zsWebToCase_5211000000795236'));
+
+            await fetch('https://helpdesk.solveitsolutions.ca/support/WebToCase', {
+                method: 'POST',
+                body: formData,
+                mode: 'no-cors'
+            });
+
+            await window.electronAPI.showMessageBox({
+                type: 'info',
+                title: 'Ticket Submitted Successfully',
+                message: 'Thank you! Your ticket was successfully received.',
+                detail: 'We will reach out to you shortly to assist with your request.',
+                buttons: ['OK']
+            });
+
+            document.getElementById('zsWebToCase_5211000000795236').reset();
+            this.autoFillZohoForm();
+
+            window.zsResetWebForm('5211000000795236');
+
+            this.toast.showMessage('✅ Ticket submitted successfully!', 'success');
+
+        } catch (error) {
+            await window.electronAPI.showMessageBox({
+                type: 'error',
+                title: 'Submission Error',
+                message: 'There was an error submitting your ticket.',
+                detail: 'Please try again or contact support directly.',
+                buttons: ['OK']
+            });
+
+            this.toast.showMessage(error.message || '❌ Failed to submit ticket', 'error');
+
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.textContent = originalText;
+        }
+    }
+
+    generateSystemInfoText() {
+        if (!this.state.systemInfo) {
+            return `
+
+==================================================
+            SYSTEM INFORMATION
+==================================================
+
+STATUS: System information not available
+NOTE: Could not collect system details for this ticket.
+
+==================================================
+              USER INFORMATION
+==================================================
+
+Name: ${this.state.userSettings.firstName} ${this.state.userSettings.lastName}
+Email: ${this.state.userSettings.email}
+Phone: ${this.state.userSettings.phone}${this.state.userSettings.extension ? ' ext. ' + this.state.userSettings.extension : ''}
+Department: ${this.state.userSettings.department}`;
+        }
+
+        return `
+
+==================================================
+            SYSTEM INFORMATION REPORT
+==================================================
+
+Computer Name: ${this.state.systemInfo.computerName}
+Manufacturer: ${this.state.systemInfo.manufacturer}
+Model: ${this.state.systemInfo.model}
+Serial Number: ${this.state.systemInfo.serialNumber}
+Operating System: ${this.state.systemInfo.osVersion}
+Architecture: ${this.state.systemInfo.osArchitecture}
+Processor: ${this.state.systemInfo.cpu.model}
+CPU Cores: ${this.state.systemInfo.cpu.cores}
+Memory Total: ${this.state.systemInfo.memory.total}
+Memory Usage: ${this.state.systemInfo.memory.usagePercent}% used
+Network IP: ${this.state.systemInfo.network.primaryIP}
+Network Hostname: ${this.state.systemInfo.network.hostname}
+System Uptime: ${this.state.systemInfo.uptime}
+Current User: ${this.state.systemInfo.currentUser}@${this.state.systemInfo.userDomain}
+Last Boot: ${new Date(this.state.systemInfo.lastBoot).toLocaleString()}
+
+${this.state.systemInfo.storage.length > 0 ? `Storage Details:\n${this.state.systemInfo.storage.map(drive => `Drive ${drive.drive}: ${drive.total} total, ${drive.free} free (${drive.usagePercent}% used)`).join('\n')}` : ''}
+
+${this.state.systemInfo.gpu.length > 0 ? `Graphics:\n${this.state.systemInfo.gpu.map(gpu => `${gpu.name}${gpu.memory !== 'Unknown' ? ` (${gpu.memory})` : ''}`).join('\n')}` : ''}
+
+${this.state.systemInfo.network.interfaces.length > 0 ? `Network Interfaces:\n${this.state.systemInfo.network.interfaces.map(iface => `${iface.name}: ${iface.address} (MAC: ${iface.mac})`).join('\n')}` : ''}
+
+==================================================
+              USER INFORMATION
+==================================================
+
+Name: ${this.state.userSettings.firstName} ${this.state.userSettings.lastName}
+Email: ${this.state.userSettings.email}
+Phone: ${this.state.userSettings.phone}${this.state.userSettings.extension ? ' ext. ' + this.state.userSettings.extension : ''}
+Department: ${this.state.userSettings.department}
+Job Title: ${this.state.userSettings.jobTitle}
+
+==================================================
+            SCREENSHOTS ATTACHED
+==================================================
+
+${this.state.currentScreenshots.length > 0 ?
+    this.state.currentScreenshots.map((screenshot, index) =>
+        `Screenshot ${index + 1}: ${screenshot.filename} (${screenshot.dimensions.width}x${screenshot.dimensions.height})`
+    ).join('\n') : 'No screenshots attached'}
+
+Data Collected: ${new Date().toLocaleString()}`;
+    }
+
+    async takeScreenshot() {
+        try {
+            const result = await window.electronAPI.takeScreenshot();
+            if (result.success) {
+                this.toast.showMessage('📷 Screenshot captured! Opening folder...', 'success');
+
+                if (window.electronAPI.openScreenshotFile && result.filepath) {
+                    await window.electronAPI.openScreenshotFile(result.filepath);
+                }
+            } else {
+                this.toast.showMessage('❌ Screenshot failed: ' + (result.error || 'Unknown error'), 'error');
+            }
+        } catch (error) {
+            this.toast.showMessage('❌ Screenshot failed', 'error');
+        }
+    }
+
+    async clearScreenshots() {
+        try {
+            const result = await window.electronAPI.clearScreenshots();
+            if (result.success) {
+                this.state.currentScreenshots = [];
+                this.updateScreenshotsDisplay();
+                this.toast.showMessage('🗑️ Screenshots cleared', 'info');
+            }
+        } catch (error) {
+            this.toast.showMessage('❌ Clear failed', 'error');
+        }
+    }
+
+    updateScreenshotsDisplay() {
+        const container = document.getElementById('screenshotStatus');
+        const clearBtn = document.getElementById('clearScreenshotsBtn');
+
+        if (!container || !clearBtn) return;
+
+        clearBtn.style.display = this.state.currentScreenshots.length > 0 ? 'inline-block' : 'none';
+
+        if (this.state.currentScreenshots.length === 0) {
+            container.innerHTML = '<div class="no-screenshots"><div class="screenshot-icon">📷</div><div class="screenshot-text">No screenshots</div></div>';
+        } else {
+            const screenshotItems = this.state.currentScreenshots.map((screenshot, i) =>
+                '<div class="screenshot-item">' +
+                '<div class="screenshot-preview">' +
+                '<img src="' + (screenshot.preview?.dataUrl || 'data:image/png;base64,' + screenshot.preview?.base64) + '" alt="Screenshot ' + (i+1) + '" />' +
+                '</div>' +
+                '<div class="screenshot-info">' +
+                '<div class="screenshot-name">Screenshot ' + (i+1) + '</div>' +
+                '<div class="screenshot-details">' + (screenshot.dimensions?.width || 'Unknown') + 'x' + (screenshot.dimensions?.height || 'Unknown') + '</div>' +
+                '</div>' +
+                '</div>'
+            ).join('');
+
+            container.innerHTML = '<div class="screenshots-list">' + screenshotItems + '</div>';
+        }
+    }
+}
