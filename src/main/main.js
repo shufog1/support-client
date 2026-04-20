@@ -337,13 +337,6 @@ app.on('before-quit', () => {
     app.isQuiting = true;
 });
 
-app.on('web-contents-created', (event, contents) => {
-    contents.on('new-window', (event, navigationUrl) => {
-        event.preventDefault();
-        shell.openExternal(navigationUrl);
-    });
-});
-
 // ===== IPC HANDLERS =====
 
 // Window controls

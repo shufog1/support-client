@@ -1,8 +1,8 @@
 # IT-Support-Client — Implementation Plan (Refactor)
 
 ## Current Status
-**Last session:** 2026-04-20 (Session #5) — Phase 4 complete. All hardcoded values extracted to 3 config JSON files. Main process, preload, and all renderer modules now read from config. `grep` for old literals returns zero hits in `src/` (exception: HTML form element `name`/`id` attributes required by Zoho's WebToCase architecture — documented in DECISIONS.md). `package.json` `build.files` updated to include `config/**`.
-**Next up:** Phase 5 — fix real issues (Electron upgrade, XSS surfaces, dead preload surface, WMIC helpers, log rotation). Then Phase 6 (ESLint+Prettier+Husky), Phase 7 (build + pilot deploy).
+**Last session:** 2026-04-20 (Session #6) — Phase 5 in progress. 5a done: deleted dead preload surface (zohoAPI, appUtils, checkSystemInfoStatus, delete window.require/exports/module lines), deleted obsolete new-window listener from main.js, deleted dead WMIC parser helpers (parseWMICValue, parseWMICMultipleValues, parseRAMSlots, parseGPUInfo) from system-info-collector.js.
+**Next up:** 5b (XSS hardening), 5c (log rotation), 5d (attachment limit), 5e (script cache), then pause at 5f for Electron bump decision.
 **Blockers:** None. App is stable.
 
 ## Next Session Prompt
