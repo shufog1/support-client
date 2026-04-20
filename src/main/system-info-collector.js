@@ -13,6 +13,12 @@ class SystemInfoCollector {
         // Use AppData for persistent system info cache — folder name sourced from config
         this.appDataDir = path.join(os.homedir(), 'AppData', 'Roaming', appConfig.paths.appDataFolderName);
         this.systemInfoPath = path.join(this.appDataDir, 'system-info.json');
+
+        // In-memory cache for the extracted PowerShell script path.
+        // Re-extraction only happens when the source file's mtime changes
+        // (i.e. after an app update). Avoids redundant disk writes on every collection.
+        this._cachedScriptPath = null;
+        this._cachedScriptMtime = null;
     }
 
     async log(message) {
@@ -24,6 +30,50 @@ class SystemInfoCollector {
             await fs.mkdir(this.appDataDir, { recursive: true });
         } catch (error) {
             // Directory might already exist
+        }
+    }
+
+    async getScriptPath() {
+        const sourcePath = path.join(__dirname, 'system-info.ps1');
+
+        if (!sourcePath.includes('.asar')) {
+            return sourcePath;
+        }
+
+        // Running from a packaged .asar — script must be extracted to a writable temp dir.
+        // Cache the extracted path in memory and only re-extract when the source mtime changes
+        // (which happens after an app update rebuilds the .asar).
+        let sourceMtime;
+        try {
+            const stat = await fs.stat(sourcePath);
+            sourceMtime = stat.mtimeMs;
+        } catch (err) {
+            await this.log(`Cannot stat script source: ${err.message}`);
+            throw new Error('Could not access PowerShell script in package');
+        }
+
+        if (this._cachedScriptPath && this._cachedScriptMtime === sourceMtime) {
+            await this.log('Using cached extracted script path');
+            return this._cachedScriptPath;
+        }
+
+        await this.log('Extracting PowerShell script from package...');
+        const tempDir = path.join(os.tmpdir(), appConfig.paths.psScriptTempDir);
+        const tempScriptPath = path.join(tempDir, 'system-info.ps1');
+
+        try {
+            await fs.mkdir(tempDir, { recursive: true });
+            const scriptContent = await fs.readFile(sourcePath, 'utf8');
+            await fs.writeFile(tempScriptPath, scriptContent, 'utf8');
+
+            this._cachedScriptPath = tempScriptPath;
+            this._cachedScriptMtime = sourceMtime;
+
+            await this.log(`Script extracted to: ${tempScriptPath}`);
+            return tempScriptPath;
+        } catch (err) {
+            await this.log(`Failed to extract script: ${err.message}`);
+            throw new Error('Could not extract PowerShell script from package');
         }
     }
 
@@ -54,32 +104,7 @@ class SystemInfoCollector {
         await this.log('=== System Information Collection Started ===');
         
         try {
-            // Handle .asar packaging - extract script to temp location
-            let scriptPath = path.join(__dirname, 'system-info.ps1');
-            
-            // Check if we're running from .asar (packaged app)
-            if (scriptPath.includes('.asar')) {
-                await this.log('Running from packaged app - extracting PowerShell script...');
-                
-                // Create temp script in a writable location — dir name from config
-                const tempDir = path.join(os.tmpdir(), appConfig.paths.psScriptTempDir);
-                const tempScriptPath = path.join(tempDir, 'system-info.ps1');
-                
-                try {
-                    await fs.mkdir(tempDir, { recursive: true });
-                    
-                    // Read the script content from the .asar and write to temp location
-                    const scriptContent = await fs.readFile(scriptPath, 'utf8');
-                    await fs.writeFile(tempScriptPath, scriptContent, 'utf8');
-                    
-                    scriptPath = tempScriptPath;
-                    await this.log(`Script extracted to: ${scriptPath}`);
-                } catch (extractError) {
-                    await this.log(`Failed to extract script: ${extractError.message}`);
-                    throw new Error('Could not extract PowerShell script from package');
-                }
-            }
-            
+            const scriptPath = await this.getScriptPath();
             await this.log(`Running PowerShell script: ${scriptPath}`);
             
             const psCommand = `powershell -ExecutionPolicy Bypass -File "${scriptPath}"`;

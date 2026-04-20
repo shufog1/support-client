@@ -1,8 +1,8 @@
 # IT-Support-Client — Implementation Plan (Refactor)
 
 ## Current Status
-**Last session:** 2026-04-20 (Session #6) — Phase 5 in progress. 5a–5d done. 5d: attachment limit fully consistent — all UI text and code paths read from config.attachments.maxCount (5); last inline hardcoded "5" in ticket-form.js replaced with maxCount variable.
-**Next up:** 5e (PS script path cache), then pause at 5f for Electron bump decision.
+**Last session:** 2026-04-20 (Session #6) — Phase 5 in progress. 5a–5e done. 5e: added getScriptPath() method to SystemInfoCollector with in-memory cache (path + mtime); re-extraction only happens when .asar source mtime changes. Removed 20-line inline extraction block from collectSystemInfo().
+**Next up:** Phase 5f — PAUSE. Need to report Electron version analysis before proceeding with 5g (bump) and 5h (code signing).
 **Blockers:** None. App is stable.
 
 ## Next Session Prompt
