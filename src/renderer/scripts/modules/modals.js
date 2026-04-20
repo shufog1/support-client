@@ -47,25 +47,69 @@ export class Modals {
         const container = document.getElementById('detailedSystemInfo');
         if (!container) return;
 
+        container.textContent = '';
+
         if (!this.state.systemInfo) {
-            container.innerHTML = '<div class="system-unavailable"><h4>❌ System Information Unavailable</h4><p>Could not collect system information. Try refreshing or contact support.</p></div>';
+            const unavail = document.createElement('div');
+            unavail.className = 'system-unavailable';
+            const h = document.createElement('h4');
+            h.textContent = 'System Information Unavailable';
+            const p = document.createElement('p');
+            p.textContent = 'Could not collect system information. Try refreshing or contact support.';
+            unavail.appendChild(h);
+            unavail.appendChild(p);
+            container.appendChild(unavail);
             return;
         }
 
-        container.innerHTML = '<div class="system-section"><h4>Computer Information</h4>' +
-            '<div class="system-item"><span class="system-label">Name:</span><span class="system-value">' + this.state.systemInfo.computerName + '</span></div>' +
-            '<div class="system-item"><span class="system-label">Manufacturer:</span><span class="system-value">' + this.state.systemInfo.manufacturer + '</span></div>' +
-            '<div class="system-item"><span class="system-label">Model:</span><span class="system-value">' + this.state.systemInfo.model + '</span></div>' +
-            '<div class="system-item"><span class="system-label">OS:</span><span class="system-value">' + this.state.systemInfo.osVersion + '</span></div>' +
-            '<div class="system-item"><span class="system-label">CPU:</span><span class="system-value">' + this.state.systemInfo.cpu.model + '</span></div>' +
-            '<div class="system-item"><span class="system-label">Memory:</span><span class="system-value">' + this.state.systemInfo.memory.total + ' (' + this.state.systemInfo.memory.usagePercent + '% used)</span></div>' +
-            '<div class="system-item"><span class="system-label">Network:</span><span class="system-value">' + this.state.systemInfo.network.primaryIP + '</span></div>' +
-            '</div>' +
-            '<div class="system-section"><h4>System Status</h4>' +
-            '<div class="system-item"><span class="system-label">Uptime:</span><span class="system-value">' + this.state.systemInfo.uptime + '</span></div>' +
-            '<div class="system-item"><span class="system-label">User:</span><span class="system-value">' + this.state.systemInfo.currentUser + '@' + this.state.systemInfo.userDomain + '</span></div>' +
-            '<div class="system-item"><span class="system-label">Last Scan:</span><span class="system-value">' + new Date(this.state.systemInfo.collectedAt).toLocaleString() + '</span></div>' +
-            '</div>';
+        const info = this.state.systemInfo;
+
+        const computerRows = [
+            ['Name', info.computerName],
+            ['Manufacturer', info.manufacturer],
+            ['Model', info.model],
+            ['OS', info.osVersion],
+            ['CPU', info.cpu.model],
+            ['Memory', `${info.memory.total} (${info.memory.usagePercent}% used)`],
+            ['Network', info.network.primaryIP]
+        ];
+
+        const statusRows = [
+            ['Uptime', info.uptime],
+            ['User', `${info.currentUser}@${info.userDomain}`],
+            ['Last Scan', new Date(info.collectedAt).toLocaleString()]
+        ];
+
+        container.appendChild(this._buildInfoSection('Computer Information', computerRows));
+        container.appendChild(this._buildInfoSection('System Status', statusRows));
+    }
+
+    _buildInfoSection(title, rows) {
+        const section = document.createElement('div');
+        section.className = 'system-section';
+
+        const heading = document.createElement('h4');
+        heading.textContent = title;
+        section.appendChild(heading);
+
+        rows.forEach(([label, value]) => {
+            const item = document.createElement('div');
+            item.className = 'system-item';
+
+            const labelEl = document.createElement('span');
+            labelEl.className = 'system-label';
+            labelEl.textContent = label + ':';
+
+            const valueEl = document.createElement('span');
+            valueEl.className = 'system-value';
+            valueEl.textContent = value || 'Unknown';
+
+            item.appendChild(labelEl);
+            item.appendChild(valueEl);
+            section.appendChild(item);
+        });
+
+        return section;
     }
 
     populateUserInfo() {

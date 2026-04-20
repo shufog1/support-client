@@ -1,8 +1,8 @@
 # IT-Support-Client — Implementation Plan (Refactor)
 
 ## Current Status
-**Last session:** 2026-04-20 (Session #6) — Phase 5 in progress. 5a done: deleted dead preload surface (zohoAPI, appUtils, checkSystemInfoStatus, delete window.require/exports/module lines), deleted obsolete new-window listener from main.js, deleted dead WMIC parser helpers (parseWMICValue, parseWMICMultipleValues, parseRAMSlots, parseGPUInfo) from system-info-collector.js.
-**Next up:** 5b (XSS hardening), 5c (log rotation), 5d (attachment limit), 5e (script cache), then pause at 5f for Electron bump decision.
+**Last session:** 2026-04-20 (Session #6) — Phase 5 in progress. 5a+5b done: deleted dead preload surface and WMIC helpers (5a). Replaced innerHTML concatenation in modals.js populateDetailedSystemInfo() with createElement/textContent (5b) — WMI values (computerName, manufacturer, model, etc.) no longer flow into HTML.
+**Next up:** 5c (log rotation), 5d (attachment limit check), 5e (script cache), then pause at 5f for Electron bump decision.
 **Blockers:** None. App is stable.
 
 ## Next Session Prompt
