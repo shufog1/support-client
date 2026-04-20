@@ -1,8 +1,8 @@
 # IT-Support-Client — Implementation Plan (Refactor)
 
 ## Current Status
-**Last session:** 2026-04-19 (Session #1) — full audit complete, refactor plan written, Phase 0 in progress (git baseline + safety net).
-**Next up:** Shalom verifies the app still launches; then Phase 1 (delete dead code).
+**Last session:** 2026-04-19 (Session #1) — full audit complete, refactor plan written, Phase 0 ✅, Phase 1 ✅. Codebase shrank from 9,497 → 3,399 lines (–64%, 6,098 lines of dead code deleted across 15 files + 5 folders).
+**Next up:** Smoke test the app after Phase 1, then Phase 2 (extract inline JS from index.html into modules).
 **Blockers:** None.
 
 ---
@@ -118,7 +118,7 @@ Each phase ends with a working app and a git commit. Phases are independent — 
 | Rollback | n/a (this IS the rollback point) |
 | Effort | S |
 | Risk | Low |
-| Status | **In progress** |
+| Status | ✅ **Completed** (commit `60056b1`, 7z baseline `backups/pre-refactor-baseline-2026-04-19.7z`) |
 
 ### Phase 1 — Delete Dead Code (S, Low risk)
 
@@ -131,6 +131,7 @@ Each phase ends with a working app and a git commit. Phases are independent — 
 | Rollback | `git checkout HEAD~1 -- src/` |
 | Effort | S |
 | Risk | Low — dead-code status verified by grep |
+| Status | ✅ **Completed** — deleted 15 files + 5 empty folders, codebase 9,497 → 3,399 lines (–64%). Live src is now: `src/main/{main.js,preload.js,system-info-collector.js,system-info.ps1}`, `src/renderer/index.html`, `src/assets/icons/Logo.png` |
 
 ### Phase 2 — Extract Inline JS from `index.html` into Modules (L, Medium risk)
 
@@ -221,8 +222,8 @@ This is the biggest phase. Do it in sub-steps, commit between each.
 
 | Phase | Effort | Risk | Status |
 |-------|--------|------|--------|
-| 0 — Safety net | S | Low | In progress |
-| 1 — Delete dead code | S | Low | Pending |
+| 0 — Safety net | S | Low | ✅ Completed |
+| 1 — Delete dead code | S | Low | ✅ Completed |
 | 2 — Extract inline JS | L | Medium | Pending |
 | 3 — Extract inline CSS | M | Low | Pending |
 | 4 — Move hardcoded values to config | M | Medium | Pending |
