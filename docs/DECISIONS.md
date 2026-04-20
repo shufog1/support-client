@@ -76,3 +76,28 @@
 **Decision:** Always update `docs/implementation-plan.md` (or other docs) when committing code. Never use `--no-verify`.
 
 **Why:** Shalom relies on docs to track state across sessions (he doesn't read code). The hook enforces this discipline. Skipping it = silent doc drift.
+
+---
+
+## D8 — Code Signing Deferred (2026-04-20)
+
+**Context:** Audit finding SEC8: `verifyUpdateCodeSignature: false` in electron-builder win config means the auto-updater accepts unsigned update packages. If the GitHub release host or Shalom's GitHub account is compromised, an attacker could push an arbitrary EXE that auto-runs on all 50-80 client machines.
+
+**Decision:** Defer code signing. `verifyUpdateCodeSignature` stays `false` for now.
+
+**`signingHashAlgorithms: ["sha256"]` has been added** to the win build config as preparation — this tells electron-builder to sign with SHA-256 when a cert IS provided. No cert path or password is wired yet.
+
+**What's required to complete signing:**
+1. Purchase an Authenticode code-signing certificate (OV or EV). Store the `.pfx` file path and password in Bitwarden under a name like `"IT-Support-Client Code Signing Cert"`.
+2. Add to `package.json` win build config:
+   ```
+   "certificateFile": "path/to/cert.pfx"
+   "certificatePassword": env variable CSC_KEY_PASSWORD
+   ```
+3. Set env var `CSC_KEY_PASSWORD` in the build environment (GitHub Actions secret or local `.env` file — `.env` is gitignored).
+4. Flip `verifyUpdateCodeSignature` from `false` to `true`.
+5. Run a full `npm run build-win` and verify the produced `.exe`/`.msi` shows "SolveIT Solutions" publisher with a valid signature in Windows SmartScreen.
+
+**Impact while deferred:** Windows SmartScreen will show an "Unknown publisher" warning when clients install the MSI for the first time, and may block the auto-updater EXE on machines with strict AppLocker/Defender policies. With 50-80 clients currently on the pilot this is acceptable risk.
+
+**When to revisit:** Before scaling past the pilot cohort, and no later than v1.4.0. EV certificates ($200–$500/yr from DigiCert/Sectigo) skip SmartScreen entirely; OV certificates ($100–$300/yr) reduce friction but may still show a warning on first run.
