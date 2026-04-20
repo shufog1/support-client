@@ -1,8 +1,8 @@
 # IT-Support-Client — Implementation Plan (Refactor)
 
 ## Current Status
-**Last session:** 2026-04-20 (Session #3) — R2 ✅ done. New `dialog.js` module with `Dialog` class (success/error/show methods). In-app branded modal replaces Windows native dialog on ticket submit. Honest copy: "Submission sent" + email caveat. CSS inline in `<style>` block (Phase 3 will extract). R3 next.
-**Next up:** R3 — auto-attach screenshots to ticket form.
+**Last session:** 2026-04-20 (Session #3) — R2 ✅ + R3 ✅ both done. R2: in-app branded dialog replaces Windows native dialog on ticket submit (honest copy, green/red icon states). R3: screenshots auto-attach to Zoho form via DataTransfer + change event; `captureScreenshot()` now returns `bytesBase64`; edge case handled (max 5 attachments toast). Phase 3 (extract inline CSS) is next.
+**Next up:** Phase 3 — extract inline CSS into separate stylesheet files.
 **Blockers:** None.
 
 ---

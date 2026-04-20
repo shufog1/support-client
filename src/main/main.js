@@ -239,7 +239,8 @@ async function captureScreenshot() {
                         filepath: filepath,
                         bufferSize: buffer.length,
                         fileSizeOnDisk: stats.size,
-                        dimensions: screenSource.thumbnail.getSize()
+                        dimensions: screenSource.thumbnail.getSize(),
+                        bytesBase64: buffer.toString('base64')
                     };
 
                     break; // Stop on first successful capture
@@ -258,6 +259,9 @@ async function captureScreenshot() {
                 success: true,
                 message: 'Screenshot captured successfully!',
                 filepath: successfulCapture.filepath,
+                filename: successfulCapture.filename,
+                mimeType: 'image/png',
+                bytesBase64: successfulCapture.bytesBase64,
                 data: successfulCapture,
                 screenshot: {
                     id: Date.now().toString(),

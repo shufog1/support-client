@@ -208,16 +208,54 @@ Data Collected: ${new Date().toLocaleString()}`;
         try {
             const result = await window.electronAPI.takeScreenshot();
             if (result.success) {
-                this.toast.showMessage('📷 Screenshot captured! Opening folder...', 'success');
+                this.toast.showMessage('📷 Screenshot saved to disk', 'success');
 
-                if (window.electronAPI.openScreenshotFile && result.filepath) {
-                    await window.electronAPI.openScreenshotFile(result.filepath);
-                }
+                this.attachScreenshot({
+                    bytesBase64: result.bytesBase64,
+                    filename: result.filename,
+                    mimeType: result.mimeType || 'image/png'
+                });
             } else {
                 this.toast.showMessage('❌ Screenshot failed: ' + (result.error || 'Unknown error'), 'error');
             }
         } catch (error) {
             this.toast.showMessage('❌ Screenshot failed', 'error');
+        }
+    }
+
+    attachScreenshot({ bytesBase64, filename, mimeType }) {
+        if (!bytesBase64 || !filename) return;
+
+        if (window.zsAttachedAttachmentsCount >= 5) {
+            this.toast.showMessage('Max 5 attachments — remove one to add screenshot', 'warning');
+            return;
+        }
+
+        try {
+            const binaryStr = atob(bytesBase64);
+            const bytes = new Uint8Array(binaryStr.length);
+            for (let i = 0; i < binaryStr.length; i++) {
+                bytes[i] = binaryStr.charCodeAt(i);
+            }
+            const file = new File([bytes], filename, { type: mimeType });
+
+            const nextId = window.zsAttachmentFileBrowserIdsList[0];
+            const inputEl = document.getElementById('zsattachment_' + nextId);
+
+            if (!inputEl) {
+                this.toast.showMessage('Max 5 attachments — remove one to add screenshot', 'warning');
+                return;
+            }
+
+            const dt = new DataTransfer();
+            dt.items.add(file);
+            inputEl.files = dt.files;
+
+            inputEl.dispatchEvent(new Event('change', { bubbles: true }));
+
+            this.toast.showMessage('📎 Screenshot attached to ticket', 'success');
+        } catch (err) {
+            this.toast.showMessage('❌ Could not attach screenshot', 'error');
         }
     }
 
