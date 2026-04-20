@@ -109,29 +109,21 @@ export class TicketForm {
                 mode: 'no-cors'
             });
 
-            await window.electronAPI.showMessageBox({
-                type: 'info',
-                title: 'Ticket Submitted Successfully',
-                message: 'Thank you! Your ticket was successfully received.',
-                detail: 'We will reach out to you shortly to assist with your request.',
-                buttons: ['OK']
-            });
+            await this.state.dialog.success(
+                'Submission sent',
+                'Your support request has been submitted to Zoho Desk. You\'ll receive a confirmation email shortly. If you don\'t see it within 15 minutes, please reach out directly.'
+            );
 
             document.getElementById('zsWebToCase_5211000000795236').reset();
             this.autoFillZohoForm();
 
             window.zsResetWebForm('5211000000795236');
 
-            this.toast.showMessage('✅ Ticket submitted successfully!', 'success');
-
         } catch (error) {
-            await window.electronAPI.showMessageBox({
-                type: 'error',
-                title: 'Submission Error',
-                message: 'There was an error submitting your ticket.',
-                detail: 'Please try again or contact support directly.',
-                buttons: ['OK']
-            });
+            await this.state.dialog.error(
+                'Couldn\'t submit',
+                'Something went wrong sending your request. Please try again, or contact support directly at support@solveitsolutions.ca.'
+            );
 
             this.toast.showMessage(error.message || '❌ Failed to submit ticket', 'error');
 

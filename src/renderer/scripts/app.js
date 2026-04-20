@@ -5,6 +5,7 @@ import { Modals } from './modules/modals.js';
 import { TicketForm } from './modules/ticket-form.js';
 import { Tools } from './modules/tools.js';
 import { SetupWizard } from './modules/setup-wizard.js';
+import { Dialog } from './modules/dialog.js';
 
 document.addEventListener('DOMContentLoaded', () => {
     // Shared state object — all modules read/write this
@@ -17,14 +18,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Construct modules in dependency order
     const toast = new Toast();
+    const dialog = new Dialog();
     const profileStore = new ProfileStore(state, toast);
     const systemInfoController = new SystemInfoController(state, toast);
     const modals = new Modals(state, toast);
     const ticketForm = new TicketForm(state, toast);
     const tools = new Tools(toast);
 
-    // Cross-reference: system-info-controller needs modals to refresh the open modal
+    // Cross-references: modules that need siblings wired after construction
     state.modals = modals;
+    state.dialog = dialog;
 
     const setupWizard = new SetupWizard(
         state,
@@ -203,5 +206,5 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Expose app for any legacy references
-    window.solveITApp = { state, toast, profileStore, systemInfoController, modals, ticketForm, tools, setupWizard };
+    window.solveITApp = { state, toast, dialog, profileStore, systemInfoController, modals, ticketForm, tools, setupWizard };
 });

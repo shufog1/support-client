@@ -1,8 +1,8 @@
 # IT-Support-Client — Implementation Plan (Refactor)
 
 ## Current Status
-**Last session:** 2026-04-20 (Session #2) — R1 ✅ fully resolved. The real fix was `app.disableHardwareAcceleration()` (GPU process kept crashing in RDP, eating ~1-2s per launch). Splash window + timing instrumentation removed — they were masking/diagnosing a problem that's now fixed at the root. Result: window opens fast and clean, no flash.
-**Next up:** R2 — in-app ticket confirmation (replace Windows native dialog). Then R3, then Phase 3 (extract inline CSS).
+**Last session:** 2026-04-20 (Session #3) — R2 ✅ done. New `dialog.js` module with `Dialog` class (success/error/show methods). In-app branded modal replaces Windows native dialog on ticket submit. Honest copy: "Submission sent" + email caveat. CSS inline in `<style>` block (Phase 3 will extract). R3 next.
+**Next up:** R3 — auto-attach screenshots to ticket form.
 **Blockers:** None.
 
 ---
