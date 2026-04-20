@@ -1,8 +1,8 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>SolveIT Quick Support</title>
 
     <!-- Inject config values from main process before any scripts run.
@@ -10,372 +10,492 @@
          runs before the page script. We write Zoho tokens into window.__appConfig
          so the SalesIQ loader and form markup can use them. -->
     <script>
-        (function() {
-            var cfg = window.electronAPI ? window.electronAPI.getConfig() : null;
-            window.__appConfig = cfg || {};
+      (function () {
+        var cfg = window.electronAPI ? window.electronAPI.getConfig() : null;
+        window.__appConfig = cfg || {};
 
-            if (cfg && cfg.zoho) {
-                // Inject SalesIQ widget script dynamically with token from config
-                window.$zoho = window.$zoho || {};
-                $zoho.salesiq = $zoho.salesiq || { ready: function() {} };
+        if (cfg && cfg.zoho) {
+          // Inject SalesIQ widget script dynamically with token from config
+          window.$zoho = window.$zoho || {};
+          $zoho.salesiq = $zoho.salesiq || { ready: function () {} };
 
-                var s = document.createElement('script');
-                s.id = 'zsiqscript';
-                s.defer = true;
-                s.src = cfg.zoho.salesiqWidgetBaseUrl + '?wc=' + cfg.zoho.salesiqWidgetToken;
-                document.head.appendChild(s);
+          var s = document.createElement('script');
+          s.id = 'zsiqscript';
+          s.defer = true;
+          s.src = cfg.zoho.salesiqWidgetBaseUrl + '?wc=' + cfg.zoho.salesiqWidgetToken;
+          document.head.appendChild(s);
 
-                // Inject Zoho jQuery+encoder CDN script dynamically
-                var jqs = document.createElement('script');
-                jqs.src = cfg.zoho.cdn.jqueryEncoderUrl;
-                jqs.id = 'zohoJqueryEncoder';
-                document.head.appendChild(jqs);
-            }
-        })();
+          // Inject Zoho jQuery+encoder CDN script dynamically
+          var jqs = document.createElement('script');
+          jqs.src = cfg.zoho.cdn.jqueryEncoderUrl;
+          jqs.id = 'zohoJqueryEncoder';
+          document.head.appendChild(jqs);
+        }
+      })();
     </script>
 
     <!-- Stylesheets -->
-    <link rel="stylesheet" href="./styles/base.css">
-    <link rel="stylesheet" href="./styles/header.css">
-    <link rel="stylesheet" href="./styles/form.css">
-    <link rel="stylesheet" href="./styles/modal.css">
-    <link rel="stylesheet" href="./styles/setup-wizard.css">
-    <link rel="stylesheet" href="./styles/messages.css">
-</head>
-<body>
+    <link rel="stylesheet" href="./styles/base.css" />
+    <link rel="stylesheet" href="./styles/header.css" />
+    <link rel="stylesheet" href="./styles/form.css" />
+    <link rel="stylesheet" href="./styles/modal.css" />
+    <link rel="stylesheet" href="./styles/setup-wizard.css" />
+    <link rel="stylesheet" href="./styles/messages.css" />
+  </head>
+  <body>
     <!-- Loading Overlay -->
     <div id="loadingOverlay" class="loading-overlay">
-        <div class="loading-content">
-            <div class="loading-spinner"></div>
-            <p>Loading SolveIT Support...</p>
-        </div>
+      <div class="loading-content">
+        <div class="loading-spinner"></div>
+        <p>Loading SolveIT Support...</p>
+      </div>
     </div>
 
     <!-- Setup Wizard Modal -->
-    <div id="setupWizardModal" class="modal" style="display: none;">
-        <div class="modal-content">
-            <div class="setup-wizard">
-                <div class="setup-header">
-                    <h2> Welcome to SolveIT Support</h2>
-                    <p>Let's get you set up for faster support</p>
-                </div>
-                
-                <div class="setup-body">
-                    <div class="setup-progress">
-                        <div class="setup-progress-fill" id="setupProgressFill" style="width: 50%;"></div>
-                    </div>
+    <div id="setupWizardModal" class="modal" style="display: none">
+      <div class="modal-content">
+        <div class="setup-wizard">
+          <div class="setup-header">
+            <h2>Welcome to SolveIT Support</h2>
+            <p>Let's get you set up for faster support</p>
+          </div>
 
-                    <!-- Step 1: Personal Information -->
-                    <div class="setup-step active" id="setupStep1">
-                        <h3 style="margin-bottom: 20px;">👤 Your Information</h3>
-                        <p style="color: #666; margin-bottom: 25px;">This information will be automatically included in all support tickets.</p>
-                        
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label>First Name *</label>
-                                <input type="text" id="setupFirstName" placeholder="John" required>
-                            </div>
-                            <div class="form-group">
-                                <label>Last Name *</label>
-                                <input type="text" id="setupLastName" placeholder="Smith" required>
-                            </div>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label>Email Address *</label>
-                            <input type="email" id="setupEmail" placeholder="john.smith@company.com" required>
-                        </div>
-                        
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label>Phone Number</label>
-                                <input type="tel" id="setupPhone" placeholder="(555) 123-4567">
-                            </div>
-                            <div class="form-group">
-                                <label>Extension</label>
-                                <input type="text" id="setupExtension" placeholder="1234">
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Step 2: Department & Job Title -->
-                    <div class="setup-step" id="setupStep2">
-                        <h3 style="margin-bottom: 20px;">🏢 Department & Role</h3>
-                        <p style="color: #666; margin-bottom: 25px;">Help us provide better support by knowing your department.</p>
-                        
-                        <div class="form-group">
-                            <label>Department</label>
-                            <input type="text" id="setupDepartment" placeholder="Accounting, Sales, Marketing, Operations, HR, IT, Management, Other..." />
-                        </div>
-                        
-                        <div class="form-group" style="margin-top: 20px;">
-    <label>Location (Optional)</label>
-    <input type="text" id="setupJobTitle" placeholder="Monsey office, Montreal office, etc..." />
-</div>
-                    </div>
-
-                    <div class="setup-buttons">
-    <button type="button" class="btn btn-secondary" id="setupSkipBtn">Skip Setup</button>
-    <div>
-        <button type="button" class="btn btn-secondary" id="setupPrevBtn" style="display: none;">← Previous</button>
-        <button type="button" class="btn btn-primary" id="setupNextBtn">Next →</button>
-        <button type="button" class="btn btn-primary" id="setupFinishBtn" style="display: none;">🚀 Complete Setup</button>
-    </div>
-</div>
-                </div>
+          <div class="setup-body">
+            <div class="setup-progress">
+              <div class="setup-progress-fill" id="setupProgressFill" style="width: 50%"></div>
             </div>
+
+            <!-- Step 1: Personal Information -->
+            <div class="setup-step active" id="setupStep1">
+              <h3 style="margin-bottom: 20px">👤 Your Information</h3>
+              <p style="color: #666; margin-bottom: 25px">
+                This information will be automatically included in all support tickets.
+              </p>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label>First Name *</label>
+                  <input type="text" id="setupFirstName" placeholder="John" required />
+                </div>
+                <div class="form-group">
+                  <label>Last Name *</label>
+                  <input type="text" id="setupLastName" placeholder="Smith" required />
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label>Email Address *</label>
+                <input type="email" id="setupEmail" placeholder="john.smith@company.com" required />
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Phone Number</label>
+                  <input type="tel" id="setupPhone" placeholder="(555) 123-4567" />
+                </div>
+                <div class="form-group">
+                  <label>Extension</label>
+                  <input type="text" id="setupExtension" placeholder="1234" />
+                </div>
+              </div>
+            </div>
+
+            <!-- Step 2: Department & Job Title -->
+            <div class="setup-step" id="setupStep2">
+              <h3 style="margin-bottom: 20px">🏢 Department & Role</h3>
+              <p style="color: #666; margin-bottom: 25px">
+                Help us provide better support by knowing your department.
+              </p>
+
+              <div class="form-group">
+                <label>Department</label>
+                <input
+                  type="text"
+                  id="setupDepartment"
+                  placeholder="Accounting, Sales, Marketing, Operations, HR, IT, Management, Other..."
+                />
+              </div>
+
+              <div class="form-group" style="margin-top: 20px">
+                <label>Location (Optional)</label>
+                <input
+                  type="text"
+                  id="setupJobTitle"
+                  placeholder="Monsey office, Montreal office, etc..."
+                />
+              </div>
+            </div>
+
+            <div class="setup-buttons">
+              <button type="button" class="btn btn-secondary" id="setupSkipBtn">Skip Setup</button>
+              <div>
+                <button
+                  type="button"
+                  class="btn btn-secondary"
+                  id="setupPrevBtn"
+                  style="display: none"
+                >
+                  ← Previous
+                </button>
+                <button type="button" class="btn btn-primary" id="setupNextBtn">Next →</button>
+                <button
+                  type="button"
+                  class="btn btn-primary"
+                  id="setupFinishBtn"
+                  style="display: none"
+                >
+                  🚀 Complete Setup
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
+      </div>
     </div>
 
     <!-- Main App Container -->
-    <div class="app-container" id="mainApp" style="display: none;">
-        <!-- Brand Header -->
-        <div class="brand-header">
-            <button class="brand-close" id="closeBtn" title="Close">×</button>
-            <div class="brand-logo">
-                <div class="brand-icon">
-                    <img id="brandLogoImg" src="" alt="SolveIT" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                    <div class="fallback-icon" style="display:none;">🚀</div>
-                </div>
-                <div class="brand-text">
-                    <div class="brand-name">SolveIT Support Tool</div>
-                </div>
-            </div>
+    <div class="app-container" id="mainApp" style="display: none">
+      <!-- Brand Header -->
+      <div class="brand-header">
+        <button class="brand-close" id="closeBtn" title="Close">×</button>
+        <div class="brand-logo">
+          <div class="brand-icon">
+            <img
+              id="brandLogoImg"
+              src=""
+              alt="SolveIT"
+              onerror="
+                this.style.display = 'none';
+                this.nextElementSibling.style.display = 'flex';
+              "
+            />
+            <div class="fallback-icon" style="display: none">🚀</div>
+          </div>
+          <div class="brand-text">
+            <div class="brand-name">SolveIT Support Tool</div>
+          </div>
         </div>
+      </div>
 
-        <!-- Action Header -->
-        <div class="action-header">
-            <div class="quick-status">
-                <div class="status-dot" id="systemStatusDot"></div>
-                <span id="systemStatusText">Loading...</span>
-            </div>
-            <div class="header-buttons">
-                <button class="header-btn" id="systemInfoBtn" title="System Information">💻 System</button>
-                <button class="header-btn" id="quickToolsBtn" title="Quick Tools">🔧 Tools</button>
-                <button class="header-btn" id="settingsBtn" title="Profile">⚙️ Profile</button>
-            </div>
+      <!-- Action Header -->
+      <div class="action-header">
+        <div class="quick-status">
+          <div class="status-dot" id="systemStatusDot"></div>
+          <span id="systemStatusText">Loading...</span>
         </div>
-
-        <!-- User Info -->
-        <div class="user-info">
-            <div class="user-name" id="userName">Loading...</div>
-            <div class="user-details">
-                <span id="userEmail">Loading...</span>
-                <span id="computerName">Loading...</span>
-            </div>
+        <div class="header-buttons">
+          <button class="header-btn" id="systemInfoBtn" title="System Information">
+            💻 System
+          </button>
+          <button class="header-btn" id="quickToolsBtn" title="Quick Tools">🔧 Tools</button>
+          <button class="header-btn" id="settingsBtn" title="Profile">⚙️ Profile</button>
         </div>
+      </div>
 
-        <!-- Main Form with Zoho Integration -->
-        <div class="main-form">
-            <!-- Zoho Form Integration -->
-            <div id='zohoSupportWebToCase'>
-                <!-- Form action URL and token values are set at runtime by app.js (ticket-form.js)
+      <!-- User Info -->
+      <div class="user-info">
+        <div class="user-name" id="userName">Loading...</div>
+        <div class="user-details">
+          <span id="userEmail">Loading...</span>
+          <span id="computerName">Loading...</span>
+        </div>
+      </div>
+
+      <!-- Main Form with Zoho Integration -->
+      <div class="main-form">
+        <!-- Zoho Form Integration -->
+        <div id="zohoSupportWebToCase">
+          <!-- Form action URL and token values are set at runtime by app.js (ticket-form.js)
                      from config. The form name/id must stay as-is — Zoho boilerplate depends on them. -->
-                <form name='zsWebToCase_5211000000795236' id='zsWebToCase_5211000000795236' action='' method='POST' enctype='multipart/form-data'>
+          <form
+            name="zsWebToCase_5211000000795236"
+            id="zsWebToCase_5211000000795236"
+            action=""
+            method="POST"
+            enctype="multipart/form-data"
+          >
+            <!-- Zoho Hidden Fields — values injected at boot by ticket-form.js from config -->
+            <input type="hidden" name="xnQsjsdp" id="zohoXnQsjsdp" value="" />
+            <input type="hidden" name="xmIwtLD" id="zohoXmIwtLD" value="" />
+            <input type="hidden" name="xJdfEaS" value="" />
+            <input type="hidden" name="actionType" value="Q2FzZXM=" />
+            <input type="hidden" id="property(module)" value="Cases" />
+            <input
+              type="hidden"
+              id="dependent_field_values_Cases"
+              value='&#x7b;"JSON_VALUES"&#x3a;&#x7b;&#x7d;,"JSON_SELECT_VALUES"&#x3a;&#x7b;&#x7d;,"JSON_MAP_DEP_LABELS"&#x3a;&#x5b;&#x5d;&#x7d;'
+            />
+            <input type="hidden" name="returnURL" value="&#x2a;" />
 
-                    <!-- Zoho Hidden Fields — values injected at boot by ticket-form.js from config -->
-                    <input type='hidden' name='xnQsjsdp' id='zohoXnQsjsdp' value=''/>
-                    <input type='hidden' name='xmIwtLD' id='zohoXmIwtLD' value=''/>
-                    <input type='hidden' name='xJdfEaS' value=''/>
-                    <input type='hidden' name='actionType' value='Q2FzZXM='/>
-                    <input type="hidden" id="property(module)" value="Cases"/>
-                    <input type="hidden" id="dependent_field_values_Cases" value="&#x7b;&quot;JSON_VALUES&quot;&#x3a;&#x7b;&#x7d;,&quot;JSON_SELECT_VALUES&quot;&#x3a;&#x7b;&#x7d;,&quot;JSON_MAP_DEP_LABELS&quot;&#x3a;&#x5b;&#x5d;&#x7d;"/>
-                    <input type='hidden' name='returnURL' value='&#x2a;'/>
+            <table border="0" cellspacing="0" style="width: 100%">
+              <!-- Hidden Auto-filled Fields -->
+              <input type="hidden" name="First Name" id="autoFirstName" value="" />
+              <input type="hidden" name="Contact Name" id="autoContactName" value="" />
+              <input type="hidden" name="Phone" id="autoPhone" value="" />
+              <input type="hidden" name="Email" id="autoEmail" value="" />
 
-                    <table border='0' cellspacing='0' style="width: 100%;">
-                        
-                        <!-- Hidden Auto-filled Fields -->
-                        <input type='hidden' name='First Name' id='autoFirstName' value='' />
-                        <input type='hidden' name='Contact Name' id='autoContactName' value='' />
-                        <input type='hidden' name='Phone' id='autoPhone' value='' />
-                        <input type='hidden' name='Email' id='autoEmail' value='' />
-                        
-                        <tr>
-                            <td>
-                                <label class="form-label">Subject *</label>
-                                <input type='text' maxlength='255' name='Subject' id='ticketSubject' value='' class='manfieldbdr' required/>
-                            </td>
-                        </tr>
-                        
-                        <tr>
-                            <td>
-                                <label class="form-label">Description *</label>
-                                <textarea name='Description' id='ticketDescription' maxlength='3000' required></textarea>
-                            </td>
-                        </tr>
-                        
-                        <!-- Two-Column Row for Classification and Priority -->
-                        <tr>
-                            <td>
-                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-                                    <div>
-                                        <label class="form-label">Classification</label>
-                                        <select name='Classification' onchange="setDependent(this, false)" id='Classification'>
-                                            <option value=''>-None-</option>
-                                            <option value='Question'>Question</option>
-                                            <option value='Problem'>Problem</option>
-                                            <option value='Feature'>Feature</option>
-                                            <option value='Others'>Others</option>
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label class="form-label">Priority</label>
-                                        <select name='Priority' onchange="setDependent(this, false)" id='Priority'>
-                                            <option value=''>-None-</option>
-                                            <option value='High'>High</option>
-                                            <option value='Medium'>Medium</option>
-                                            <option value='Low'>Low</option>
-                                        </select>
-                                    </div>
-                                </div>
-                            </td>
-                        </tr>
-                        
-                        <!-- Attachment Section with Screenshot Button on Top -->
-                        <tr>
-                            <td>
-                                <div class="attachment-section">
-                                    <div class="attachment-header">
-                                        <label class="form-label">Attachments</label>
-                                        <button type="button" class="screenshot-btn" id="takeScreenshotBtn">📷 Take Screenshot</button>
-                                    </div>
-                                    
-                                    <!-- Drag & Drop Area -->
-                                    <div class="attachment-area" id="dragDropArea">
-                                        <span class="drag-icon">📎</span>
-                                        <span class="drag-text">Drag files here or click to browse</span>
-                                    </div>
-                                </div>
-                                
-                                <!-- Original Zoho File Inputs (Hidden) -->
-                                <span class="zsFontClass wtcuploadfile" id="zsBrowseAttachment" style="display: none;">Attach files</span>
-                                <input class="wtcuploadinput" type='file' name='attachment_1' id='zsattachment_1' style='display:none;' onclick='zsOpenFileBrowseAttachment(event)' onchange='zsRenderBrowseFileAttachment(this.value, this)'/>
-                                <input class="wtcuploadinput" type='file' name='attachment_2' id='zsattachment_2' style='display:none;' onclick='zsOpenFileBrowseAttachment(event)' onchange='zsRenderBrowseFileAttachment(this.value, this)'/>
-                                <input class="wtcuploadinput" type='file' name='attachment_3' id='zsattachment_3' style='display:none;' onclick='zsOpenFileBrowseAttachment(event)' onchange='zsRenderBrowseFileAttachment(this.value, this)'/>
-                                <input class="wtcuploadinput" type='file' name='attachment_4' id='zsattachment_4' style='display:none;' onclick='zsOpenFileBrowseAttachment(event)' onchange='zsRenderBrowseFileAttachment(this.value, this)'/>
-                                <input class="wtcuploadinput" type='file' name='attachment_5' id='zsattachment_5' style='display:none;' onclick='zsOpenFileBrowseAttachment(event)' onchange='zsRenderBrowseFileAttachment(this.value, this)'/>
-                                
-                                <div class="clboth"></div>
-                                <span id='zsMaxSizeMessage' style='color:#666;font-size: 10px;'>Max 5 files, 20MB each</span>
-                                <span id='zsMaxLimitMessage' style='color:#666;font-size: 10px;margin-left: 10px;display: none;'>Limit reached</span>
-                                <div id='zsFileBrowseAttachments'></div>
-                                
-                            </td>
-                        </tr>
-                        
-                        <!-- Submit Section -->
-                        <tr>
-                            <td colspan='2' style="text-align: center; padding-top: 20px;">
-                                <div class="submit-section">
-                                    <input type='submit' id="zsSubmitButton_5211000000795236" value='Submit Ticket'>
-                                    <input type='button' value='Reset' onclick="zsResetWebForm(window.__zohoFormId)">
-                                </div>
-                            </td>
-                        </tr>
-                        
-                    </table>
-                </form>
-            </div>
+              <tr>
+                <td>
+                  <label class="form-label">Subject *</label>
+                  <input
+                    type="text"
+                    maxlength="255"
+                    name="Subject"
+                    id="ticketSubject"
+                    value=""
+                    class="manfieldbdr"
+                    required
+                  />
+                </td>
+              </tr>
+
+              <tr>
+                <td>
+                  <label class="form-label">Description *</label>
+                  <textarea
+                    name="Description"
+                    id="ticketDescription"
+                    maxlength="3000"
+                    required
+                  ></textarea>
+                </td>
+              </tr>
+
+              <!-- Two-Column Row for Classification and Priority -->
+              <tr>
+                <td>
+                  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px">
+                    <div>
+                      <label class="form-label">Classification</label>
+                      <select
+                        name="Classification"
+                        onchange="setDependent(this, false)"
+                        id="Classification"
+                      >
+                        <option value="">-None-</option>
+                        <option value="Question">Question</option>
+                        <option value="Problem">Problem</option>
+                        <option value="Feature">Feature</option>
+                        <option value="Others">Others</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label class="form-label">Priority</label>
+                      <select name="Priority" onchange="setDependent(this, false)" id="Priority">
+                        <option value="">-None-</option>
+                        <option value="High">High</option>
+                        <option value="Medium">Medium</option>
+                        <option value="Low">Low</option>
+                      </select>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+
+              <!-- Attachment Section with Screenshot Button on Top -->
+              <tr>
+                <td>
+                  <div class="attachment-section">
+                    <div class="attachment-header">
+                      <label class="form-label">Attachments</label>
+                      <button type="button" class="screenshot-btn" id="takeScreenshotBtn">
+                        📷 Take Screenshot
+                      </button>
+                    </div>
+
+                    <!-- Drag & Drop Area -->
+                    <div class="attachment-area" id="dragDropArea">
+                      <span class="drag-icon">📎</span>
+                      <span class="drag-text">Drag files here or click to browse</span>
+                    </div>
+                  </div>
+
+                  <!-- Original Zoho File Inputs (Hidden) -->
+                  <span
+                    class="zsFontClass wtcuploadfile"
+                    id="zsBrowseAttachment"
+                    style="display: none"
+                    >Attach files</span
+                  >
+                  <input
+                    class="wtcuploadinput"
+                    type="file"
+                    name="attachment_1"
+                    id="zsattachment_1"
+                    style="display: none"
+                    onclick="zsOpenFileBrowseAttachment(event)"
+                    onchange="zsRenderBrowseFileAttachment(this.value, this)"
+                  />
+                  <input
+                    class="wtcuploadinput"
+                    type="file"
+                    name="attachment_2"
+                    id="zsattachment_2"
+                    style="display: none"
+                    onclick="zsOpenFileBrowseAttachment(event)"
+                    onchange="zsRenderBrowseFileAttachment(this.value, this)"
+                  />
+                  <input
+                    class="wtcuploadinput"
+                    type="file"
+                    name="attachment_3"
+                    id="zsattachment_3"
+                    style="display: none"
+                    onclick="zsOpenFileBrowseAttachment(event)"
+                    onchange="zsRenderBrowseFileAttachment(this.value, this)"
+                  />
+                  <input
+                    class="wtcuploadinput"
+                    type="file"
+                    name="attachment_4"
+                    id="zsattachment_4"
+                    style="display: none"
+                    onclick="zsOpenFileBrowseAttachment(event)"
+                    onchange="zsRenderBrowseFileAttachment(this.value, this)"
+                  />
+                  <input
+                    class="wtcuploadinput"
+                    type="file"
+                    name="attachment_5"
+                    id="zsattachment_5"
+                    style="display: none"
+                    onclick="zsOpenFileBrowseAttachment(event)"
+                    onchange="zsRenderBrowseFileAttachment(this.value, this)"
+                  />
+
+                  <div class="clboth"></div>
+                  <span id="zsMaxSizeMessage" style="color: #666; font-size: 10px"
+                    >Max 5 files, 20MB each</span
+                  >
+                  <span
+                    id="zsMaxLimitMessage"
+                    style="color: #666; font-size: 10px; margin-left: 10px; display: none"
+                    >Limit reached</span
+                  >
+                  <div id="zsFileBrowseAttachments"></div>
+                </td>
+              </tr>
+
+              <!-- Submit Section -->
+              <tr>
+                <td colspan="2" style="text-align: center; padding-top: 20px">
+                  <div class="submit-section">
+                    <input
+                      type="submit"
+                      id="zsSubmitButton_5211000000795236"
+                      value="Submit Ticket"
+                    />
+                    <input
+                      type="button"
+                      value="Reset"
+                      onclick="zsResetWebForm(window.__zohoFormId)"
+                    />
+                  </div>
+                </td>
+              </tr>
+            </table>
+          </form>
         </div>
+      </div>
     </div>
 
     <!-- Quick Tools Modal -->
     <div id="quickToolsModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>🔧 Quick Tools</h3>
-                <span class="close" data-modal="quickToolsModal">&times;</span>
-            </div>
-            <div class="modal-body">
-                <div class="tools-grid-modal">
-                    <button class="tool-btn-modal" data-tool="restart" title="Restart Computer">
-                        <div class="tool-icon">🔄</div>
-                        <div class="tool-text">Restart Computer</div>
-                        <div class="tool-desc">Safely restart system</div>
-                    </button>
-                    <button class="tool-btn-modal" data-tool="updates" title="Windows Updates">
-                        <div class="tool-icon">⬇️</div>
-                        <div class="tool-text">Windows Updates</div>
-                        <div class="tool-desc">Check for updates</div>
-                    </button>
-                    <button class="tool-btn-modal" data-tool="network" title="Network Settings">
-                        <div class="tool-icon">🌐</div>
-                        <div class="tool-text">Network Settings</div>
-                        <div class="tool-desc">Network & Internet</div>
-                    </button>
-                    <button class="tool-btn-modal" data-tool="cleanup" title="Disk Cleanup">
-                        <div class="tool-icon">🧹</div>
-                        <div class="tool-text">Disk Cleanup</div>
-                        <div class="tool-desc">Free up space</div>
-                    </button>
-                    <button class="tool-btn-modal" data-tool="display" title="Display Settings">
-                        <div class="tool-icon">🖥️</div>
-                        <div class="tool-text">Display Settings</div>
-                        <div class="tool-desc">Screen resolution</div>
-                    </button>
-                    <button class="tool-btn-modal" data-tool="device" title="Device Manager">
-                        <div class="tool-icon">⚙️</div>
-                        <div class="tool-text">Device Manager</div>
-                        <div class="tool-desc">Hardware devices</div>
-                    </button>
-                </div>
-            </div>
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3>🔧 Quick Tools</h3>
+          <span class="close" data-modal="quickToolsModal">&times;</span>
         </div>
+        <div class="modal-body">
+          <div class="tools-grid-modal">
+            <button class="tool-btn-modal" data-tool="restart" title="Restart Computer">
+              <div class="tool-icon">🔄</div>
+              <div class="tool-text">Restart Computer</div>
+              <div class="tool-desc">Safely restart system</div>
+            </button>
+            <button class="tool-btn-modal" data-tool="updates" title="Windows Updates">
+              <div class="tool-icon">⬇️</div>
+              <div class="tool-text">Windows Updates</div>
+              <div class="tool-desc">Check for updates</div>
+            </button>
+            <button class="tool-btn-modal" data-tool="network" title="Network Settings">
+              <div class="tool-icon">🌐</div>
+              <div class="tool-text">Network Settings</div>
+              <div class="tool-desc">Network & Internet</div>
+            </button>
+            <button class="tool-btn-modal" data-tool="cleanup" title="Disk Cleanup">
+              <div class="tool-icon">🧹</div>
+              <div class="tool-text">Disk Cleanup</div>
+              <div class="tool-desc">Free up space</div>
+            </button>
+            <button class="tool-btn-modal" data-tool="display" title="Display Settings">
+              <div class="tool-icon">🖥️</div>
+              <div class="tool-text">Display Settings</div>
+              <div class="tool-desc">Screen resolution</div>
+            </button>
+            <button class="tool-btn-modal" data-tool="device" title="Device Manager">
+              <div class="tool-icon">⚙️</div>
+              <div class="tool-text">Device Manager</div>
+              <div class="tool-desc">Hardware devices</div>
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- System Info Modal -->
     <div id="systemModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>💻 System Information</h3>
-                <span class="close" data-modal="systemModal">&times;</span>
-            </div>
-            <div class="modal-body">
-                <div id="detailedSystemInfo">
-                    <!-- Populated by JavaScript -->
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-primary" id="refreshSystemInfoBtn">🔄 Refresh</button>
-            </div>
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3>💻 System Information</h3>
+          <span class="close" data-modal="systemModal">&times;</span>
         </div>
+        <div class="modal-body">
+          <div id="detailedSystemInfo">
+            <!-- Populated by JavaScript -->
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-primary" id="refreshSystemInfoBtn">🔄 Refresh</button>
+        </div>
+      </div>
     </div>
 
     <!-- Settings Modal -->
     <div id="settingsModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>⚙️ Settings</h3>
-                <span class="close" data-modal="settingsModal">&times;</span>
-            </div>
-            <div class="modal-body">
-                <div class="settings-content">
-                    <div class="form-group">
-                        <label>First Name</label>
-                        <input type="text" id="settingsFirstName" placeholder="Your first name">
-                    </div>
-                    <div class="form-group">
-                        <label>Last Name</label>
-                        <input type="text" id="settingsLastName" placeholder="Your last name">
-                    </div>
-                    <div class="form-group">
-                        <label>Email</label>
-                        <input type="email" id="settingsEmail" placeholder="your.email@company.com">
-                    </div>
-                    <div class="form-group">
-                        <label>Department</label>
-                        <input type="text" id="settingsDepartment" placeholder="Your department">
-                    </div>
-                    <div class="form-group">
-                        <label>Phone</label>
-                        <input type="text" id="settingsPhone" placeholder="(555) 123-4567">
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-primary" id="saveSettingsBtn">Save Settings</button>
-            </div>
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3>⚙️ Settings</h3>
+          <span class="close" data-modal="settingsModal">&times;</span>
         </div>
+        <div class="modal-body">
+          <div class="settings-content">
+            <div class="form-group">
+              <label>First Name</label>
+              <input type="text" id="settingsFirstName" placeholder="Your first name" />
+            </div>
+            <div class="form-group">
+              <label>Last Name</label>
+              <input type="text" id="settingsLastName" placeholder="Your last name" />
+            </div>
+            <div class="form-group">
+              <label>Email</label>
+              <input type="email" id="settingsEmail" placeholder="your.email@company.com" />
+            </div>
+            <div class="form-group">
+              <label>Department</label>
+              <input type="text" id="settingsDepartment" placeholder="Your department" />
+            </div>
+            <div class="form-group">
+              <label>Phone</label>
+              <input type="text" id="settingsPhone" placeholder="(555) 123-4567" />
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-primary" id="saveSettingsBtn">Save Settings</button>
+        </div>
+      </div>
     </div>
 
     <!-- Zoho jQuery+encoder CDN script is injected dynamically in <head> from config.
@@ -383,5 +503,5 @@
     <!-- Zoho form helpers (globals: zsRenderBrowseFileAttachment, zsResetWebForm, etc.) -->
     <script src="./scripts/modules/zoho-form-helpers.js" defer></script>
     <script type="module" src="./scripts/app.js"></script>
-</body>
+  </body>
 </html>
