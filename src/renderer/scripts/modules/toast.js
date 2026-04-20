@@ -1,4 +1,8 @@
 export class Toast {
+    constructor(config) {
+        this.durationMs = (config && config.toast && config.toast.durationMs) ? config.toast.durationMs : 4000;
+    }
+
     showMessage(text, type) {
         document.querySelectorAll('.message').forEach(msg => msg.remove());
 
@@ -14,7 +18,7 @@ export class Toast {
                 if (message.parentNode) {
                     message.remove();
                 }
-            }, 4000);
+            }, this.durationMs);
         }
     }
 }

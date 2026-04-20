@@ -1,7 +1,23 @@
 export class TicketForm {
-    constructor(state, toast) {
+    constructor(state, toast, config) {
         this.state = state;
         this.toast = toast;
+        this.config = config;
+    }
+
+    // Called once at boot — sets the form action URL and injects the Zoho token
+    // hidden field values that were left blank in index.html (sourced from config).
+    initZohoFormTokens() {
+        const zoho = this.config.zoho;
+        const form = document.getElementById('zsWebToCase_' + zoho.formId);
+        if (form) {
+            form.action = zoho.webToCaseUrl;
+        }
+
+        const xnQs = document.getElementById('zohoXnQsjsdp');
+        const xmIwt = document.getElementById('zohoXmIwtLD');
+        if (xnQs) xnQs.value = zoho.tokens.xnQsjsdp;
+        if (xmIwt) xmIwt.value = zoho.tokens.xmIwtLD;
     }
 
     autoFillZohoForm() {
@@ -25,7 +41,7 @@ export class TicketForm {
         if (!dragArea) return;
 
         dragArea.addEventListener('click', (e) => {
-            if (e.target.id !== 'takeScreenshotBtn' && window.zsAttachedAttachmentsCount < 5) {
+            if (e.target.id !== 'takeScreenshotBtn' && window.zsAttachedAttachmentsCount < this.config.attachments.maxCount) {
                 const nextAttachment = document.getElementById('zsattachment_' + window.zsAttachmentFileBrowserIdsList[0]);
                 if (nextAttachment) {
                     nextAttachment.click();
@@ -59,7 +75,7 @@ export class TicketForm {
     }
 
     handleFileSelection(files) {
-        for (let i = 0; i < files.length && window.zsAttachedAttachmentsCount < 5; i++) {
+        for (let i = 0; i < files.length && window.zsAttachedAttachmentsCount < this.config.attachments.maxCount; i++) {
             const file = files[i];
             const nextAttachmentId = window.zsAttachmentFileBrowserIdsList[0];
             const nextAttachment = document.getElementById('zsattachment_' + nextAttachmentId);
@@ -77,7 +93,8 @@ export class TicketForm {
     async handleTicketSubmission(e) {
         e.preventDefault();
 
-        const submitBtn = document.getElementById('zsSubmitButton_5211000000795236');
+        const formId = this.config.zoho.formId;
+        const submitBtn = document.getElementById('zsSubmitButton_' + formId);
         const originalText = submitBtn.textContent;
 
         try {
@@ -101,9 +118,9 @@ export class TicketForm {
                 descriptionField.value += systemInfoText;
             }
 
-            const formData = new FormData(document.getElementById('zsWebToCase_5211000000795236'));
+            const formData = new FormData(document.getElementById('zsWebToCase_' + formId));
 
-            await fetch('https://helpdesk.solveitsolutions.ca/support/WebToCase', {
+            await fetch(this.config.zoho.webToCaseUrl, {
                 method: 'POST',
                 body: formData,
                 mode: 'no-cors'
@@ -114,10 +131,10 @@ export class TicketForm {
                 'Your submission has been received. Someone will reach out to you shortly.'
             );
 
-            document.getElementById('zsWebToCase_5211000000795236').reset();
+            document.getElementById('zsWebToCase_' + formId).reset();
             this.autoFillZohoForm();
 
-            window.zsResetWebForm('5211000000795236');
+            window.zsResetWebForm(formId);
 
         } catch (error) {
             await this.state.dialog.error(
@@ -226,8 +243,9 @@ Data Collected: ${new Date().toLocaleString()}`;
     attachScreenshot({ bytesBase64, filename, mimeType }) {
         if (!bytesBase64 || !filename) return;
 
-        if (window.zsAttachedAttachmentsCount >= 5) {
-            this.toast.showMessage('Max 5 attachments — remove one to add screenshot', 'warning');
+        const maxCount = this.config.attachments.maxCount;
+        if (window.zsAttachedAttachmentsCount >= maxCount) {
+            this.toast.showMessage(`Max ${maxCount} attachments — remove one to add screenshot`, 'warning');
             return;
         }
 

@@ -1,7 +1,8 @@
 export class ProfileStore {
-    constructor(state, toast) {
+    constructor(state, toast, config) {
         this.state = state;
         this.toast = toast;
+        this.config = config;
     }
 
     saveUserProfile(profileData) {
@@ -29,14 +30,15 @@ export class ProfileStore {
     }
 
     createDemoProfile() {
+        const demo = (this.config && this.config.demo) ? this.config.demo : {};
         this.state.userSettings = {
-            firstName: 'Demo',
-            lastName: 'User',
-            email: 'demo@company.com',
-            phone: '(555) 123-4567',
-            extension: '',
-            department: 'General',
-            jobTitle: 'Employee'
+            firstName: demo.firstName,
+            lastName: demo.lastName,
+            email: demo.email,
+            phone: demo.phone,
+            extension: demo.extension,
+            department: demo.department,
+            jobTitle: demo.jobTitle
         };
 
         try {

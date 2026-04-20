@@ -21,7 +21,8 @@ const rendererConfig = Object.freeze({
     branding: {
         productName: branding.productName,
         tagline: branding.tagline,
-        supportEmail: branding.supportEmail
+        supportEmail: branding.supportEmail,
+        logoPath: branding.logoPath
     },
     attachments: {
         maxCount: appConfig.attachments.maxCount,

@@ -1,9 +1,9 @@
 # IT-Support-Client — Implementation Plan (Refactor)
 
 ## Current Status
-**Last session:** 2026-04-20 (Session #5) — Phase 4 in progress. Created 3 config JSON files (`config/app.config.json`, `branding.config.json`, `zoho.config.json`). Phase 4.1 done: main process (`main.js`, `preload.js`, `system-info-collector.js`) now reads all window dims, paths, timeouts, screenshot resolutions, asset paths, tray tooltip, dialog copy from config. Preload exposes `getConfig()` bridge. Working through renderer-side config wiring (4.2–4.6).
-**Next up:** Complete Phase 4 renderer sub-steps (Zoho config in HTML/JS, branding, toast/attachment limits, final grep sweep + package.json files glob). Then Phase 5–7.
-**Blockers:** None.
+**Last session:** 2026-04-20 (Session #5) — Phase 4 complete. All hardcoded values extracted to 3 config JSON files. Main process, preload, and all renderer modules now read from config. `grep` for old literals returns zero hits in `src/` (exception: HTML form element `name`/`id` attributes required by Zoho's WebToCase architecture — documented in DECISIONS.md). `package.json` `build.files` updated to include `config/**`.
+**Next up:** Phase 5 — fix real issues (Electron upgrade, XSS surfaces, dead preload surface, WMIC helpers, log rotation). Then Phase 6 (ESLint+Prettier+Husky), Phase 7 (build + pilot deploy).
+**Blockers:** None. App is stable.
 
 ## Next Session Prompt
 > Project: IT-Support-Client (SolveIT internal MSP support app)
@@ -288,7 +288,7 @@ This is the biggest phase. Do it in sub-steps, commit between each.
 | 1 — Delete dead code | S | Low | ✅ Completed |
 | 2 — Extract inline JS | L | Medium | ✅ Completed |
 | 3 — Extract inline CSS | M | Low | ✅ Completed |
-| 4 — Move hardcoded values to config | M | Medium | Pending |
+| 4 — Move hardcoded values to config | M | Medium | ✅ Completed |
 | 5 — Fix real issues | M | Low–Medium | Pending |
 | 6 — Tooling (ESLint, prettier, husky) | S | Low | Pending |
 | 7 — Smoke test, build, pilot deploy | S | Low | Pending |

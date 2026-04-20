@@ -1,9 +1,10 @@
 export class SetupWizard {
-    constructor(state, profileStore, toast, onComplete) {
+    constructor(state, profileStore, toast, onComplete, config) {
         this.state = state;
         this.profileStore = profileStore;
         this.toast = toast;
         this.onComplete = onComplete;
+        this.config = config;
         this.setupStep = 1;
     }
 
@@ -92,14 +93,15 @@ export class SetupWizard {
     }
 
     skipSetup() {
+        const demo = (this.config && this.config.demo) ? this.config.demo : {};
         const demoProfile = {
-            firstName: 'Demo',
-            lastName: 'User',
-            email: 'demo@company.com',
-            phone: '(555) 123-4567',
-            extension: '',
-            department: 'General',
-            jobTitle: 'Employee',
+            firstName: demo.firstName,
+            lastName: demo.lastName,
+            email: demo.email,
+            phone: demo.phone,
+            extension: demo.extension,
+            department: demo.department,
+            jobTitle: demo.jobTitle,
             setupDate: new Date().toISOString()
         };
 

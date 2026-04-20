@@ -5,10 +5,35 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SolveIT Quick Support</title>
 
-    <!-- SalesIQ Chat Widget -->
-    <script>window.$zoho=window.$zoho || {};$zoho.salesiq=$zoho.salesiq||{ready:function(){}}</script>
-    <script id="zsiqscript" src="https://salesiq.zohopublic.ca/widget?wc=380877c585926da403d5319d4d2ae57e320d9c28839517d349950fdc976da08a" defer></script>
-    
+    <!-- Inject config values from main process before any scripts run.
+         electronAPI is available synchronously in the renderer because preload.js
+         runs before the page script. We write Zoho tokens into window.__appConfig
+         so the SalesIQ loader and form markup can use them. -->
+    <script>
+        (function() {
+            var cfg = window.electronAPI ? window.electronAPI.getConfig() : null;
+            window.__appConfig = cfg || {};
+
+            if (cfg && cfg.zoho) {
+                // Inject SalesIQ widget script dynamically with token from config
+                window.$zoho = window.$zoho || {};
+                $zoho.salesiq = $zoho.salesiq || { ready: function() {} };
+
+                var s = document.createElement('script');
+                s.id = 'zsiqscript';
+                s.defer = true;
+                s.src = cfg.zoho.salesiqWidgetBaseUrl + '?wc=' + cfg.zoho.salesiqWidgetToken;
+                document.head.appendChild(s);
+
+                // Inject Zoho jQuery+encoder CDN script dynamically
+                var jqs = document.createElement('script');
+                jqs.src = cfg.zoho.cdn.jqueryEncoderUrl;
+                jqs.id = 'zohoJqueryEncoder';
+                document.head.appendChild(jqs);
+            }
+        })();
+    </script>
+
     <!-- Stylesheets -->
     <link rel="stylesheet" href="./styles/base.css">
     <link rel="stylesheet" href="./styles/header.css">
@@ -109,7 +134,7 @@
             <button class="brand-close" id="closeBtn" title="Close">×</button>
             <div class="brand-logo">
                 <div class="brand-icon">
-                    <img src="../../assets/icons/Logo.png" alt="SolveIT" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                    <img id="brandLogoImg" src="" alt="SolveIT" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
                     <div class="fallback-icon" style="display:none;">🚀</div>
                 </div>
                 <div class="brand-text">
@@ -144,11 +169,13 @@
         <div class="main-form">
             <!-- Zoho Form Integration -->
             <div id='zohoSupportWebToCase'>
-                <form name='zsWebToCase_5211000000795236' id='zsWebToCase_5211000000795236' action='https://helpdesk.solveitsolutions.ca/support/WebToCase' method='POST' enctype='multipart/form-data'>
-                    
-                    <!-- Zoho Hidden Fields -->
-                    <input type='hidden' name='xnQsjsdp' value='edbsn25754e2bf66770e5202f9ba40ba41ad4'/>
-                    <input type='hidden' name='xmIwtLD' value='edbsndb0ce54b617bbc17eb795f7fa315266d3c4d19a0f5dda9b53fb386bb88a08a05'/>
+                <!-- Form action URL and token values are set at runtime by app.js (ticket-form.js)
+                     from config. The form name/id must stay as-is — Zoho boilerplate depends on them. -->
+                <form name='zsWebToCase_5211000000795236' id='zsWebToCase_5211000000795236' action='' method='POST' enctype='multipart/form-data'>
+
+                    <!-- Zoho Hidden Fields — values injected at boot by ticket-form.js from config -->
+                    <input type='hidden' name='xnQsjsdp' id='zohoXnQsjsdp' value=''/>
+                    <input type='hidden' name='xmIwtLD' id='zohoXmIwtLD' value=''/>
                     <input type='hidden' name='xJdfEaS' value=''/>
                     <input type='hidden' name='actionType' value='Q2FzZXM='/>
                     <input type="hidden" id="property(module)" value="Cases"/>
@@ -241,7 +268,7 @@
                             <td colspan='2' style="text-align: center; padding-top: 20px;">
                                 <div class="submit-section">
                                     <input type='submit' id="zsSubmitButton_5211000000795236" value='Submit Ticket'>
-                                    <input type='button' value='Reset' onclick="zsResetWebForm('5211000000795236')">
+                                    <input type='button' value='Reset' onclick="zsResetWebForm(window.__zohoFormId)">
                                 </div>
                             </td>
                         </tr>
@@ -351,10 +378,10 @@
         </div>
     </div>
 
-    <!-- Include Zoho Scripts -->
-    <script src='https://js.zohostatic.ca/support/app/js/jqueryandencoder.ef05974972bf3bca1b87.js'></script>
+    <!-- Zoho jQuery+encoder CDN script is injected dynamically in <head> from config.
+         Local Zoho form helpers depend on jQuery being loaded first. -->
     <!-- Zoho form helpers (globals: zsRenderBrowseFileAttachment, zsResetWebForm, etc.) -->
-    <script src="./scripts/modules/zoho-form-helpers.js"></script>
+    <script src="./scripts/modules/zoho-form-helpers.js" defer></script>
     <script type="module" src="./scripts/app.js"></script>
 </body>
 </html>

@@ -1,3 +1,4 @@
+import { loadConfig } from './config-loader.js';
 import { Toast } from './modules/toast.js';
 import { ProfileStore } from './modules/profile-store.js';
 import { SystemInfoController } from './modules/system-info-controller.js';
@@ -8,6 +9,12 @@ import { SetupWizard } from './modules/setup-wizard.js';
 import { Dialog } from './modules/dialog.js';
 
 document.addEventListener('DOMContentLoaded', () => {
+    // Load config once — all modules that need config receive it as a constructor arg
+    const config = loadConfig();
+
+    // Expose Zoho form ID globally so zoho-form-helpers.js (non-module) can access it
+    window.__zohoFormId = config.zoho.formId;
+
     // Shared state object — all modules read/write this
     const state = {
         systemInfo: null,
@@ -17,12 +24,12 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // Construct modules in dependency order
-    const toast = new Toast();
+    const toast = new Toast(config);
     const dialog = new Dialog();
-    const profileStore = new ProfileStore(state, toast);
+    const profileStore = new ProfileStore(state, toast, config);
     const systemInfoController = new SystemInfoController(state, toast);
     const modals = new Modals(state, toast);
-    const ticketForm = new TicketForm(state, toast);
+    const ticketForm = new TicketForm(state, toast, config);
     const tools = new Tools(toast);
 
     // Cross-references: modules that need siblings wired after construction
@@ -33,7 +40,8 @@ document.addEventListener('DOMContentLoaded', () => {
         state,
         profileStore,
         toast,
-        () => initializeMainApp()
+        () => initializeMainApp(),
+        config
     );
 
     function checkSetupRequired() {
@@ -51,7 +59,12 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('loadingOverlay').classList.add('hidden');
             document.getElementById('mainApp').style.display = 'flex';
 
+            // Set logo src from branding config
+            const logoImg = document.getElementById('brandLogoImg');
+            if (logoImg) logoImg.src = config.branding.logoPath;
+
             profileStore.loadUserSettings();
+            ticketForm.initZohoFormTokens();
             setupEventListeners();
             await systemInfoController.loadSystemInformation();
             await systemInfoController.loadScreenshots();
@@ -77,7 +90,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
 
-        const ticketFormEl = document.getElementById('zsWebToCase_5211000000795236');
+        const ticketFormEl = document.getElementById('zsWebToCase_' + config.zoho.formId);
         if (ticketFormEl) {
             ticketFormEl.addEventListener('submit', (e) => ticketForm.handleTicketSubmission(e));
         }
@@ -175,8 +188,9 @@ document.addEventListener('DOMContentLoaded', () => {
     document.addEventListener('readystatechange', function() {
         if (document.readyState === 'complete') {
             window.setAllDependancyFieldsMapping();
-            document.getElementById('zsSubmitButton_5211000000795236').removeAttribute('disabled');
+            document.getElementById('zsSubmitButton_' + config.zoho.formId).removeAttribute('disabled');
             window.zsAttachedAttachmentsCount = 0;
+            window.zsAllowedAttachmentLimit = config.attachments.maxCount;
             window.zsAttachmentFileBrowserIdsList = [1, 2, 3, 4, 5];
             jQuery('#zsFileBrowseAttachments').html('');
             window.zsRearrangeFileBrowseAttachments();
