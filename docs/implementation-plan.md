@@ -1,8 +1,8 @@
 # IT-Support-Client — Implementation Plan (Refactor)
 
 ## Current Status
-**Last session:** 2026-04-20 (Session #6) — Phase 5 in progress. 5a+5b done: deleted dead preload surface and WMIC helpers (5a). Replaced innerHTML concatenation in modals.js populateDetailedSystemInfo() with createElement/textContent (5b) — WMI values (computerName, manufacturer, model, etc.) no longer flow into HTML.
-**Next up:** 5c (log rotation), 5d (attachment limit check), 5e (script cache), then pause at 5f for Electron bump decision.
+**Last session:** 2026-04-20 (Session #6) — Phase 5 in progress. 5a+5b+5c done: deleted dead preload surface and WMIC helpers (5a). XSS-hardened system info modal (5b). Added electron-log with 5 MB rotation + 3-archive pruning; replaced all console.log/error in main.js and system-info-collector.js with the rotating logger; log goes to %APPDATA%\solveit-support-client\logs\main.log (5c).
+**Next up:** 5d (attachment limit reconciliation check), 5e (PS script path cache), then pause at 5f for Electron bump decision.
 **Blockers:** None. App is stable.
 
 ## Next Session Prompt

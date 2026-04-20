@@ -3,6 +3,7 @@ const path = require('path');
 const { exec } = require('child_process');
 const fs = require('fs').promises;
 const os = require('os');
+const log = require('./logger');
 const SystemInfoCollector = require('./system-info-collector');
 const appConfig = require('../../config/app.config.json');
 const branding = require('../../config/branding.config.json');
@@ -29,9 +30,9 @@ systemInfoCollector = new SystemInfoCollector();
 async function ensureScreenshotDirectory() {
     try {
         await fs.mkdir(outputDir, { recursive: true });
-        console.log('Screenshot directory ensured:', outputDir);
+        log.info('Screenshot directory ensured:', outputDir);
     } catch (error) {
-        console.error('Failed to create screenshot directory:', error);
+        log.error('Failed to create screenshot directory:', error);
     }
 }
 
@@ -131,13 +132,13 @@ function createTray() {
                     try {
                         const result = await captureScreenshot();
                         if (result.success && result.filepath) {
-                            console.log('Quick screenshot captured from tray');
+                            log.info('Quick screenshot captured from tray');
                             shell.showItemInFolder(result.filepath);
                         } else {
-                            console.error('Screenshot failed:', result.error || 'Unknown error');
+                            log.error('Screenshot failed:', result.error || 'Unknown error');
                         }
                     } catch (error) {
-                        console.error('Quick screenshot error:', error);
+                        log.error('Quick screenshot error:', error);
                     }
                 }
             },
@@ -177,7 +178,7 @@ function createTray() {
         });
 
     } catch (error) {
-        console.error('Failed to create tray:', error);
+        log.error('Failed to create tray:', error);
     }
 }
 
@@ -195,7 +196,7 @@ async function captureScreenshot() {
 
         // Step 2: Get the primary screen
         const primaryScreen = sources[0];
-        console.log('Primary screen selected:', primaryScreen.name);
+        log.info('Primary screen selected:', primaryScreen.name);
 
         // Step 3: Try different resolutions (sourced from config)
         const resolutions = appConfig.screenshot.resolutions;
@@ -204,7 +205,7 @@ async function captureScreenshot() {
 
         for (const res of resolutions) {
             try {
-                console.log(`\nTrying ${res.name} (${res.width}x${res.height})...`);
+                log.info(`Trying ${res.name} (${res.width}x${res.height})...`);
 
                 const captureResult = await desktopCapturer.getSources({
                     types: ['screen'],
@@ -213,12 +214,12 @@ async function captureScreenshot() {
 
                 const screenSource = captureResult.find(s => s.id === primaryScreen.id);
                 if (!screenSource || !screenSource.thumbnail) {
-                    console.log(`${res.name}: No thumbnail`);
+                    log.info(`${res.name}: No thumbnail`);
                     continue;
                 }
 
                 const buffer = screenSource.thumbnail.toPNG();
-                console.log(`${res.name}: Buffer size = ${buffer.length} bytes`);
+                log.info(`${res.name}: Buffer size = ${buffer.length} bytes`);
 
                 if (buffer.length > 0) {
                     // Save the screenshot
@@ -230,7 +231,7 @@ async function captureScreenshot() {
 
                     // Verify file was written
                     const stats = await fs.stat(filepath);
-                    console.log(`${res.name}: File saved! Size on disk = ${stats.size} bytes`);
+                    log.info(`${res.name}: File saved! Size on disk = ${stats.size} bytes`);
 
                     successfulCapture = {
                         resolution: res,
@@ -246,13 +247,12 @@ async function captureScreenshot() {
                 }
 
             } catch (error) {
-                console.log(`${res.name}: Failed -`, error.message);
+                log.warn(`${res.name}: Failed -`, error.message);
             }
         }
 
         if (successfulCapture) {
-            console.log('\n=== SCREENSHOT SUCCESS ===');
-            console.log('Successful capture:', successfulCapture);
+            log.info('Screenshot captured successfully:', successfulCapture.filename);
 
             return {
                 success: true,
@@ -276,8 +276,7 @@ async function captureScreenshot() {
         }
 
     } catch (error) {
-        console.error('\n=== SCREENSHOT FAILED ===');
-        console.error('Error:', error.message);
+        log.error('Screenshot failed:', error.message);
 
         return {
             success: false,
@@ -348,7 +347,7 @@ ipcMain.handle('close-window', async () => {
         }
         return { success: false, message: 'No window to close' };
     } catch (error) {
-        console.error('Close window error:', error);
+        log.error('Close window error:', error);
         return { success: false, error: error.message };
     }
 });
@@ -361,7 +360,7 @@ ipcMain.handle('minimize-window', async () => {
         }
         return { success: false, message: 'No window to minimize' };
     } catch (error) {
-        console.error('Minimize window error:', error);
+        log.error('Minimize window error:', error);
         return { success: false, error: error.message };
     }
 });
@@ -369,7 +368,7 @@ ipcMain.handle('minimize-window', async () => {
 // System info handlers
 ipcMain.handle('get-system-info', async (event, forceRefresh = false) => {
     try {
-        console.log(`Getting system info (forceRefresh: ${forceRefresh})...`);
+        log.info(`Getting system info (forceRefresh: ${forceRefresh})...`);
 
         if (mainWindow) {
             mainWindow.webContents.send('system-info-loading', true);
@@ -381,11 +380,11 @@ ipcMain.handle('get-system-info', async (event, forceRefresh = false) => {
             mainWindow.webContents.send('system-info-loading', false);
         }
 
-        console.log('System info retrieved successfully');
+        log.info('System info retrieved successfully');
         return { success: true, data: systemInfo };
 
     } catch (error) {
-        console.error('Error getting system info:', error);
+        log.error('Error getting system info:', error);
 
         if (mainWindow) {
             mainWindow.webContents.send('system-info-loading', false);
@@ -401,7 +400,7 @@ ipcMain.handle('get-system-info', async (event, forceRefresh = false) => {
 
 ipcMain.handle('refresh-system-info', async () => {
     try {
-        console.log('Manual system info refresh requested...');
+        log.info('Manual system info refresh requested...');
 
         if (mainWindow) {
             mainWindow.webContents.send('system-info-loading', true);
@@ -413,11 +412,11 @@ ipcMain.handle('refresh-system-info', async () => {
             mainWindow.webContents.send('system-info-loading', false);
         }
 
-        console.log('System info refreshed successfully');
+        log.info('System info refreshed successfully');
         return { success: true, data: systemInfo, message: 'System info refreshed successfully' };
 
     } catch (error) {
-        console.error('Error refreshing system info:', error);
+        log.error('Error refreshing system info:', error);
 
         if (mainWindow) {
             mainWindow.webContents.send('system-info-loading', false);
@@ -434,12 +433,12 @@ ipcMain.handle('refresh-system-info', async () => {
 // Screenshot handler
 ipcMain.handle('take-screenshot', async () => {
     try {
-        console.log('Screenshot requested from renderer...');
+        log.info('Screenshot requested from renderer...');
         const result = await captureScreenshot();
-        console.log('Screenshot result:', result.success ? 'Success' : result.error);
+        log.info('Screenshot result:', result.success ? 'Success' : result.error);
         return result;
     } catch (error) {
-        console.error('Screenshot error:', error);
+        log.error('Screenshot error:', error);
         return {
             success: false,
             error: error.message,
@@ -454,7 +453,7 @@ ipcMain.handle('show-screenshot-in-folder', async (event, screenshotFilePath) =>
         shell.showItemInFolder(screenshotFilePath);
         return { success: true };
     } catch (error) {
-        console.error('Error showing screenshot in folder:', error);
+        log.error('Error showing screenshot in folder:', error);
         return { success: false, error: error.message };
     }
 });
@@ -463,7 +462,7 @@ ipcMain.handle('show-screenshot-in-folder', async (event, screenshotFilePath) =>
 // System tools (existing functionality)
 ipcMain.handle('restart-computer', async () => {
     try {
-        console.log('Initiating system restart...');
+        log.info('Initiating system restart...');
 
         const restartDialog = branding.dialogs.restart;
         const result = await dialog.showMessageBox(mainWindow, {
@@ -478,7 +477,7 @@ ipcMain.handle('restart-computer', async () => {
         if (result.response === 0) {
             exec(`shutdown /r /t 30 /c "Restarting computer via ${branding.productName} - Type '${restartDialog.cancelCommand}' to cancel"`, (error) => {
                 if (error) {
-                    console.error('Restart error:', error);
+                    log.error('Restart error:', error);
                 }
             });
             return { success: true, message: `Computer will restart in 30 seconds. ${restartDialog.cancelNote}` };
@@ -486,21 +485,21 @@ ipcMain.handle('restart-computer', async () => {
             return { success: false, message: 'Restart cancelled by user' };
         }
     } catch (error) {
-        console.error('Restart error:', error);
+        log.error('Restart error:', error);
         return { success: false, message: 'Failed to restart computer: ' + error.message };
     }
 });
 
 ipcMain.handle('check-windows-updates', async () => {
     try {
-        console.log('Opening Windows Update...');
+        log.info('Opening Windows Update...');
 
         exec('start ms-settings:windowsupdate', (error) => {
             if (error) {
-                console.error('Windows Update settings error:', error);
+                log.warn('Windows Update settings error:', error);
                 exec('wuauclt /detectnow && control /name Microsoft.WindowsUpdate', (fallbackError) => {
                     if (fallbackError) {
-                        console.error('Windows Update fallback error:', fallbackError);
+                        log.warn('Windows Update fallback error:', fallbackError);
                     }
                 });
             }
@@ -508,21 +507,21 @@ ipcMain.handle('check-windows-updates', async () => {
 
         return { success: true, message: 'Windows Update settings opened' };
     } catch (error) {
-        console.error('Windows Update error:', error);
+        log.error('Windows Update error:', error);
         return { success: false, message: 'Failed to open Windows Update: ' + error.message };
     }
 });
 
 ipcMain.handle('network-reset', async () => {
     try {
-        console.log('Opening Network settings...');
+        log.info('Opening Network settings...');
 
         exec('start ms-settings:network', (error) => {
             if (error) {
-                console.error('Network settings error:', error);
+                log.warn('Network settings error:', error);
                 exec('ncpa.cpl', (fallbackError) => {
                     if (fallbackError) {
-                        console.error('Network fallback error:', fallbackError);
+                        log.warn('Network fallback error:', fallbackError);
                     }
                 });
             }
@@ -530,21 +529,21 @@ ipcMain.handle('network-reset', async () => {
 
         return { success: true, message: 'Network settings opened' };
     } catch (error) {
-        console.error('Network error:', error);
+        log.error('Network error:', error);
         return { success: false, message: 'Failed to open network settings: ' + error.message };
     }
 });
 
 ipcMain.handle('disk-cleanup', async () => {
     try {
-        console.log('Starting disk cleanup...');
+        log.info('Starting disk cleanup...');
 
         exec('cleanmgr /sagerun:1', (error) => {
             if (error) {
-                console.error('Disk cleanup error:', error);
+                log.warn('Disk cleanup error:', error);
                 exec('cleanmgr', (fallbackError) => {
                     if (fallbackError) {
-                        console.error('Disk cleanup fallback error:', fallbackError);
+                        log.warn('Disk cleanup fallback error:', fallbackError);
                         exec('explorer.exe ::{20D04FE0-3AEA-1069-A2D8-08002B30309D}', () => { });
                     }
                 });
@@ -553,7 +552,7 @@ ipcMain.handle('disk-cleanup', async () => {
 
         return { success: true, message: 'Disk cleanup utility started' };
     } catch (error) {
-        console.error('Disk cleanup error:', error);
+        log.error('Disk cleanup error:', error);
         return { success: false, message: 'Failed to start disk cleanup: ' + error.message };
     }
 });
@@ -564,7 +563,7 @@ ipcMain.handle('show-message-box', async (event, options) => {
         const result = await dialog.showMessageBox(mainWindow, options);
         return result;
     } catch (error) {
-        console.error('Message box error:', error);
+        log.error('Message box error:', error);
         return { response: 0 };
     }
 });
@@ -572,14 +571,14 @@ ipcMain.handle('show-message-box', async (event, options) => {
 // Additional system utilities
 ipcMain.handle('open-display-settings', async () => {
     try {
-        console.log('Opening display settings...');
+        log.info('Opening display settings...');
 
         exec('start ms-settings:display', (error) => {
             if (error) {
-                console.error('Display settings error:', error);
+                log.warn('Display settings error:', error);
                 exec('desk.cpl', (fallbackError) => {
                     if (fallbackError) {
-                        console.error('Display fallback error:', fallbackError);
+                        log.warn('Display fallback error:', fallbackError);
                     }
                 });
             }
@@ -587,21 +586,21 @@ ipcMain.handle('open-display-settings', async () => {
 
         return { success: true, message: 'Display settings opened' };
     } catch (error) {
-        console.error('Display error:', error);
+        log.error('Display error:', error);
         return { success: false, message: 'Failed to open display settings: ' + error.message };
     }
 });
 
 ipcMain.handle('printer-troubleshooter', async () => {
     try {
-        console.log('Opening printer settings...');
+        log.info('Opening printer settings...');
 
         exec('start ms-settings:printers', (error) => {
             if (error) {
-                console.error('Printer settings error:', error);
+                log.warn('Printer settings error:', error);
                 exec('control printers', (fallbackError) => {
                     if (fallbackError) {
-                        console.error('Printer fallback error:', fallbackError);
+                        log.warn('Printer fallback error:', fallbackError);
                     }
                 });
             }
@@ -609,7 +608,7 @@ ipcMain.handle('printer-troubleshooter', async () => {
 
         return { success: true, message: 'Printer settings opened' };
     } catch (error) {
-        console.error('Printer error:', error);
+        log.error('Printer error:', error);
         return { success: false, message: 'Failed to open printer settings: ' + error.message };
     }
 });
@@ -617,7 +616,7 @@ ipcMain.handle('printer-troubleshooter', async () => {
 ipcMain.handle('open-device-manager', async () => {
     try {
         exec('devmgmt.msc', (error) => {
-            if (error) console.error('Device Manager error:', error);
+            if (error) log.error('Device Manager error:', error);
         });
         return { success: true, message: 'Device Manager opened' };
     } catch (error) {
@@ -628,7 +627,7 @@ ipcMain.handle('open-device-manager', async () => {
 ipcMain.handle('open-system-info', async () => {
     try {
         exec('msinfo32', (error) => {
-            if (error) console.error('System Info error:', error);
+            if (error) log.error('System Info error:', error);
         });
         return { success: true, message: 'System Information opened' };
     } catch (error) {
@@ -639,7 +638,7 @@ ipcMain.handle('open-system-info', async () => {
 ipcMain.handle('run-system-file-checker', async () => {
     try {
         exec('powershell -Command "Start-Process cmd -ArgumentList \'/c sfc /scannow & pause\' -Verb RunAs"', (error) => {
-            if (error) console.error('SFC error:', error);
+            if (error) log.error('SFC error:', error);
         });
         return { success: true, message: 'System File Checker started (admin approval may be required)' };
     } catch (error) {
@@ -651,9 +650,9 @@ ipcMain.handle('flush-dns', async () => {
     try {
         exec('ipconfig /flushdns', (error, stdout) => {
             if (error) {
-                console.error('DNS flush error:', error);
+                log.error('DNS flush error:', error);
             } else {
-                console.log('DNS flushed:', stdout);
+                log.info('DNS flushed:', stdout.trim());
             }
         });
         return { success: true, message: 'DNS cache flushed successfully' };
@@ -670,7 +669,7 @@ if (!isDev) {
         autoUpdater.checkForUpdatesAndNotify();
 
         autoUpdater.on('update-available', () => {
-            console.log('Update available');
+            log.info('Update available');
             if (mainWindow) {
                 dialog.showMessageBox(mainWindow, {
                     type: 'info',
@@ -682,7 +681,7 @@ if (!isDev) {
         });
 
         autoUpdater.on('update-downloaded', () => {
-            console.log('Update downloaded');
+            log.info('Update downloaded');
             if (mainWindow) {
                 dialog.showMessageBox(mainWindow, {
                     type: 'info',
@@ -698,21 +697,21 @@ if (!isDev) {
         });
 
     } catch (error) {
-        console.log('Auto-updater not available:', error.message);
+        log.warn('Auto-updater not available:', error.message);
     }
 }
 
 // Error handling
 process.on('uncaughtException', (error) => {
-    console.error('Uncaught Exception:', error);
+    log.error('Uncaught Exception:', error);
 });
 
 process.on('unhandledRejection', (reason, promise) => {
-    console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+    log.error('Unhandled Rejection at:', promise, 'reason:', reason);
 });
 
-console.log(`${branding.productName} - Production Ready with Working Screenshots`);
-console.log('Development mode:', isDev);
-console.log('App path:', app.getAppPath());
-console.log('User data path:', app.getPath('userData'));
-console.log('Screenshot directory:', outputDir);
+log.info(`${branding.productName} - Production Ready with Working Screenshots`);
+log.info('Development mode:', isDev);
+log.info('App path:', app.getAppPath());
+log.info('User data path:', app.getPath('userData'));
+log.info('Screenshot directory:', outputDir);

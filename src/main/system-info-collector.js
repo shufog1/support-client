@@ -3,29 +3,20 @@ const path = require('path');
 const { exec } = require('child_process');
 const { promisify } = require('util');
 const os = require('os');
+const log = require('./logger');
 const appConfig = require('../../config/app.config.json');
 
 const execAsync = promisify(exec);
 
 class SystemInfoCollector {
     constructor() {
-        // Use AppData for persistent storage — folder name sourced from config
+        // Use AppData for persistent system info cache — folder name sourced from config
         this.appDataDir = path.join(os.homedir(), 'AppData', 'Roaming', appConfig.paths.appDataFolderName);
         this.systemInfoPath = path.join(this.appDataDir, 'system-info.json');
-        this.logPath = path.join(this.appDataDir, 'system-info.log');
     }
 
     async log(message) {
-        const timestamp = new Date().toISOString();
-        const logMessage = `[${timestamp}] ${message}\n`;
-        console.log(`[SystemInfo] ${message}`);
-        
-        try {
-            await this.ensureAppDataDirectory();
-            await fs.appendFile(this.logPath, logMessage);
-        } catch (error) {
-            // Ignore log file errors
-        }
+        log.info(`[SystemInfo] ${message}`);
     }
 
     async ensureAppDataDirectory() {

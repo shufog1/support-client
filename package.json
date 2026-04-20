@@ -43,6 +43,7 @@
     "rimraf": "^5.0.5"
   },
   "dependencies": {
+    "electron-log": "^5.4.3",
     "electron-updater": "^6.1.4",
     "node-fetch": "^3.3.2"
   },
